@@ -42,6 +42,10 @@ class Analysis():
                     print('ddG = {}: err = {}'.format(ddg, ddg_err))
                     result[engine_id][prot_name][lig_name] = [ddg, ddg_err]
 
+        with open('./result.dat', 'w') as f:
+            print(result, file=f)
+
+
 def nice_print(string):
     '''
 
@@ -55,9 +59,7 @@ def nice_print(string):
 if __name__ == '__main__':
     nice_print('Analysis')
 
-    if os.path.exists('./all_res.dat'):
-        result = eval(open('./all_res.dat').read())
+    if os.path.exists('./result.dat'):
+        raise ValueError('Results file found in this directory cowardly refusing to proceed.')
     else:
-        result = {}
-
-    ana = Analysis()
+        ana = Analysis()
