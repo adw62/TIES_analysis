@@ -37,9 +37,12 @@ class Analysis():
                         leg_results[leg] = engine.run_analysis(cfg.data_root, prot_name, lig_name, leg)
                         print('dG = {}: err = {}'.format(*leg_results[leg]))
 
-                    ddg = leg_results['lig'][0] - leg_results['com'][0]
-                    ddg_err = np.sqrt(np.square(leg_results['lig'][1]) + np.square(leg_results['com'][1]))
-                    print('ddG = {}: err = {}'.format(ddg, ddg_err))
+                    leg1 = cfg.simulation_legs[0]
+                    leg2 = cfg.simulation_legs[1]
+
+                    ddg = leg_results[leg1][0] - leg_results[leg2][0]
+                    ddg_err = np.sqrt(np.square(leg_results[leg1][1]) + np.square(leg_results[leg2][1]))
+                    print('ddG = {}: SEM = {}'.format(ddg, ddg_err))
                     result[engine_id][prot_name][lig_name] = [ddg, ddg_err]
 
         with open('./result.dat', 'w') as f:
