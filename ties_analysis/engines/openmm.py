@@ -93,6 +93,8 @@ class OpenMM(object):
             print('Running MBAR analysis with all replica time series combined.')
             print('Errors will be estimated by PYMBAR')
             result = method_run.analysis(mask_windows=self.win_mask)
+            #convert stdev given by pymbar to SEM
+            result = [result[0], result[1]/np.sqrt(data.shape[0])]
         elif self.method == 'FEP':
             result = method_run.replica_analysis(mask_windows=self.win_mask)
 
@@ -101,10 +103,60 @@ class OpenMM(object):
 
         return result
 
-
     def collate_data(self, data_root, prot, lig, leg):
         '''
 
+        :param data_root: str, file path point to base dir for results files
+        :param prot: str, name of dir for protein
+        :param lig:  str, name of dir for ligand
+        :param leg: str, name of dir for thermo leg
+        :return np.array() containing all the data in the result files concatenated
+        '''
+
+        results_dir_path = os.path.join(data_root, self.name, prot, lig, leg)
+
+        if self.method == 'TI':
+            TI_results_files = os.path.join(results_dir_path,  'LAMBDA_*', 'rep*', 'results',  '*TI.npy')
+            result_files = list(glob.iglob(TI_results_files))
+        elif self.method == 'FEP':
+            FEP_results_files = os.path.join(results_dir_path, 'LAMBDA_*', 'rep*', 'results', '*FEP.npy')
+            result_files = list(glob.iglob(FEP_results_files))
+        else:
+            raise ValueError('Unknown method specified, {}, choose from TI/FEP'.format(self.method))
+
+        if len(result_files) == 0:
+            raise ValueError('{} in methods but no results files found'.format(self.method))
+
+        # Sort by order of windows
+        result_files.sort(key=get_window)
+
+        #print('Processing files...')
+        #for file in result_files:
+        #    print(file)
+
+        # Use ordered dict to preserve windows order
+        all_data = collections.OrderedDict()
+        for file in result_files:
+            window = get_window(file)
+            loaded = np.load(file, allow_pickle=True)
+            loaded = np.array([loaded])
+            if window not in all_data:
+                all_data[window] = loaded
+            else:
+                # appending all repeats to a new axis
+                all_data[window] = np.vstack([all_data[window], loaded])
+
+        # appending all windows together to make final array
+        concat_windows = np.stack([x for x in all_data.values()], axis=0)
+        # resuffle axis to be in order reps, windows, lambda_dimensions, iterations
+        concat_windows = np.transpose(concat_windows, (1, 0, 2, 3))
+
+        return concat_windows
+
+
+    def collate_data_old(self, data_root, prot, lig, leg):
+        '''
+        Used to analysis the original alpha version of OpenMM TIES
         :param data_root: str, file path point to base dir for results files
         :param prot: str, name of dir for protein
         :param lig:  str, name of dir for ligand
@@ -118,6 +170,8 @@ class OpenMM(object):
             leg = 'solvent'
 
         results_dir_path = os.path.join(data_root, self.name, prot, lig, leg, 'results/complex')
+
+
 
         if self.method == 'TI':
             TI_results_files = os.path.join(results_dir_path, 'TI*.npy')
@@ -159,4 +213,4 @@ def get_window(string):
     '''
     Helper function to sort directory paths by specific index in file name
     '''
-    return int(os.path.split(string)[-1].split('_')[2])
+    return int(string.split('LAMBDA_')[-1][0])
