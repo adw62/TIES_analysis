@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-from engines.openmm import OpenMM
-from engines.namd import NAMD
-
+from ties_analysis.engines.openmm import OpenMM
+from ties_analysis.engines.namd import NAMD
 
 class Config():
     def __init__(self, namd_cfg='./namd.cfg', openmm_cfg='./openmm.cfg', analysis_cfg='./analysis.cfg'):
@@ -32,6 +31,8 @@ class Config():
         self.engines = []
         if 'NAMD2' in self.engines_to_init or 'NAMD3' in self.engines_to_init:
             namd_args = read_config(namd_cfg)
+            namd_args['namd_version'] = namd_args['namd_version'][0]
+            namd_args['iterations'] = namd_args['iterations'][0]
             methods = namd_args['methods']
             del namd_args['methods']
             for method in methods:
@@ -45,6 +46,9 @@ class Config():
             for method in methods:
                 openmm = OpenMM(method, self.analysis_dir, self.win_mask, **openmm_args)
                 self.engines.append(openmm)
+
+        if len(self.engines) == 0:
+            raise ValueError('No support engines requested. Please choose from (NAMD2/NAMD3/OpenMM)')
 
         #process exp data
         # EXP data specifies what proteins and ligands to look at
