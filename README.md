@@ -3,7 +3,7 @@ Make analysis of TIES output from NAMD2/3 or OpenMM
 
 # Installation and running
 
-conda create --name ti_ana
+conda create --name ti_ana python=3.6
 
 conda activate ti_ana
 
