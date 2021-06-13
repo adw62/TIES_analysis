@@ -5,8 +5,8 @@ import glob
 import collections
 import numpy as np
 
-from methods.TI import TI_Analysis
-from methods.FEP import MBAR_Analysis
+from ties_analysis.methods.TI import TI_Analysis
+from ties_analysis.methods.FEP import MBAR_Analysis
 
 class Lambdas():
     '''
@@ -150,62 +150,6 @@ class OpenMM(object):
         concat_windows = np.stack([x for x in all_data.values()], axis=0)
         # resuffle axis to be in order reps, windows, lambda_dimensions, iterations
         concat_windows = np.transpose(concat_windows, (1, 0, 2, 3))
-
-        return concat_windows
-
-
-    def collate_data_old(self, data_root, prot, lig, leg):
-        '''
-        Used to analysis the original alpha version of OpenMM TIES
-        :param data_root: str, file path point to base dir for results files
-        :param prot: str, name of dir for protein
-        :param lig:  str, name of dir for ligand
-        :param leg: str, name of dir for thermo leg
-        :return np.array() containing all the data in the result files concatenated
-        '''
-
-        if leg == 'com':
-            leg = 'complex'
-        elif leg == 'lig':
-            leg = 'solvent'
-
-        results_dir_path = os.path.join(data_root, self.name, prot, lig, leg, 'results/complex')
-
-
-
-        if self.method == 'TI':
-            TI_results_files = os.path.join(results_dir_path, 'TI*.npy')
-            result_files = list(glob.iglob(TI_results_files))
-        elif self.method == 'FEP':
-            FEP_results_files = os.path.join(results_dir_path, 'FEP*.npy')
-            result_files = list(glob.iglob(FEP_results_files))
-        else:
-            raise ValueError('Unknown method specified, {}, choose from TI/FEP'.format(self.method))
-
-        if len(result_files) == 0:
-            raise ValueError('{} in methods but no results files found'.format(self.method))
-
-        # Sort by order of windows
-        result_files.sort(key=get_window)
-
-        #print('Processing files...')
-        #for file in result_files:
-        #    print(file)
-
-        # Use ordered dict to preserve windows order
-        all_data = collections.OrderedDict()
-        for file in result_files:
-            window = get_window(file)
-            loaded = np.load(file, allow_pickle=True)
-            loaded = np.array([loaded])
-            if window not in all_data:
-                all_data[window] = loaded
-            else:
-                # appending all repeats to a new axis
-                all_data[window] = np.vstack([all_data[window], loaded])
-
-        # appending all windows together to make final array
-        concat_windows = np.array(np.concatenate([v for v in all_data.values()], axis=1))
 
         return concat_windows
 

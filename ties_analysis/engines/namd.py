@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-
 import os
 import glob
 import collections
 import numpy as np
 
-from engines.openmm import Lambdas
-from methods.TI import TI_Analysis
+from ties_analysis.engines.openmm import Lambdas
+from ties_analysis.methods.TI import TI_Analysis
 
 class NAMD(object):
     '''
@@ -26,14 +25,14 @@ class NAMD(object):
         :param iterations: int, number of iterations to expect in alch files
         '''
 
-        self.namd_ver = float(namd_version[0])
+        self.namd_ver = float(namd_version)
 
         if self.namd_ver < 3:
-            self.name = 'N2'
+            self.name = 'NAMD2'
         else:
-            self.name = 'N3'
+            self.name = 'NAMD3'
 
-        self.iter = int(iterations[0])
+        self.iter = int(iterations)
         self.method = method
         self.namd_lambs = Lambdas(vdw_a, vdw_d, ele_a, ele_d)
         self.output = output
@@ -75,6 +74,9 @@ class NAMD(object):
 
         result_files = os.path.join(results_dir_path, 'LAMBDA_*', 'rep*', 'simulation', 'sim1.alch')
         result_files = list(glob.iglob(result_files))
+
+        if len(result_files) == 0:
+            raise ValueError('{} in methods but no results files found'.format(self.method))
 
         # Sort by order of windows
         result_files.sort(key=get_window)
@@ -124,7 +126,7 @@ def read_alch_file(file_path, namd_ver, iterations):
                     data[:, count] = [float(split_line[4]), float(split_line[8]),
                                       float(split_line[2]), float(split_line[6])]
                 else:
-                    raise ValueError('Unknown NAMD ver. {}'.format(alch))
+                    raise ValueError('Unknown NAMD ver. {}'.format(namd_ver))
 
                 count += 1
     return data
