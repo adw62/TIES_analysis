@@ -3,7 +3,6 @@
 import copy
 import numpy as np
 from sklearn.utils import resample
-from pathlib import Path
 
 class TI_Analysis(object):
     '''
@@ -24,9 +23,8 @@ class TI_Analysis(object):
         self.shape = list(self.data.shape)
         self.nstates = self.shape[1]
 
+        #directory where any TI specific output could be saved, not curretly used
         self.analysis_dir = analysis_dir
-        print('Attempting to make analysis folder {0}'.format(self.analysis_dir))
-        Path(self.analysis_dir).mkdir(parents=True, exist_ok=True)
 
         # Do a check that this is the shape of data we would expect from the config file
         print('Data shape is {} repeats, {} states, {} lambda dimensions, {} iterations'.format(*self.shape))
@@ -110,8 +108,11 @@ def compute_bs_error(replicas):
     :param replicas, list, values of average dU/dlam in each replica
     :return: turple of floats, average and var of boot strapped result
     '''
-    boot = [resample(replicas, replace=True, n_samples=len(replicas)) for x in range(5000)]
-    avg_per_boot_sample = np.average(boot, axis=1)
+    if len(replicas) > 1:
+        boot = [resample(replicas, replace=True, n_samples=len(replicas)) for x in range(5000)]
+        avg_per_boot_sample = np.average(boot, axis=1)
+    else:
+        return replicas[0], 0.0
 
     return np.average(avg_per_boot_sample), np.var(avg_per_boot_sample, ddof=1)
 

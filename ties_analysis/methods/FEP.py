@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pymbar import MBAR, timeseries
 
-from methods.TI import compute_bs_error
+from ties_analysis.methods.TI import compute_bs_error
 
 class MBAR_Analysis():
     '''
@@ -31,10 +31,11 @@ class MBAR_Analysis():
         self.lambdas = lambdas
 
         self.analysis_dir = analysis_dir
-        print('Attempting to make analysis folder {0}'.format(self.analysis_dir))
-        Path(self.analysis_dir).mkdir(parents=True, exist_ok=True)
+        if analysis_dir is not None:
+            print('Attempting to make analysis folder {0}'.format(self.analysis_dir))
+            Path(self.analysis_dir).mkdir(parents=True, exist_ok=True)
 
-        self.data, self.N_k = MBAR_Analysis.decorrelate_data(self)
+        self.data, self.N_k, self.rep_data, self.rep_N_k = MBAR_Analysis.decorrelate_data(self)
 
     def decorrelate_data(self):
         '''
@@ -43,17 +44,24 @@ class MBAR_Analysis():
         :return turple, (np matrix containing decorrelated data, list of ints for end of decorrelated data in matrix)
         '''
 
-        decorr_data_sav = os.path.join(self.analysis_dir, 'fep_decorr_data.npy')
-        index_sav = os.path.join(self.analysis_dir, 'fep_N_k.npy')
+        #load data if avaliable
+        if self.analysis_dir is not None:
+            decorr_data_sav = os.path.join(self.analysis_dir, 'fep_decorr_data.npy')
+            index_sav = os.path.join(self.analysis_dir, 'fep_N_k.npy')
 
-        rep_decorr_data_sav = os.path.join(self.analysis_dir, 'fep_rep_decorr_data.npy')
-        rep_index_sav = os.path.join(self.analysis_dir, 'fep_rep_N_k.npy')
+            rep_decorr_data_sav = os.path.join(self.analysis_dir, 'fep_rep_decorr_data.npy')
+            rep_index_sav = os.path.join(self.analysis_dir, 'fep_rep_N_k.npy')
 
+            if os.path.exists(decorr_data_sav) and os.path.exists(index_sav)\
+                    and os.path.exists(rep_decorr_data_sav) and os.path.exists(rep_index_sav):
 
-        if os.path.exists(decorr_data_sav) and os.path.exists(index_sav):
-            decorr_data = np.load(decorr_data_sav)
-            N_k = np.load(index_sav)
-            return decorr_data, N_k
+                print('Loading decorrelated data from disk')
+                decorr_data = np.load(decorr_data_sav)
+                N_k = np.load(index_sav)
+
+                replicas_deccor = np.load(rep_decorr_data_sav)
+                replicas_Nk = np.load(rep_index_sav)
+                return decorr_data, N_k, replicas_deccor, replicas_Nk
 
         print('Decorrelating data...')
         iter_per_rep = self.shape[3]
@@ -86,13 +94,14 @@ class MBAR_Analysis():
 
         print('Number of decorrelated samples extracted per state: {}'.format(N_k))
 
-        np.save(decorr_data_sav, decorr_data)
-        np.save(index_sav, N_k)
+        if self.analysis_dir is not None:
+            np.save(decorr_data_sav, decorr_data)
+            np.save(index_sav, N_k)
 
-        np.save(rep_decorr_data_sav, replicas_deccor)
-        np.save(rep_index_sav, replicas_Nk)
+            np.save(rep_decorr_data_sav, replicas_deccor)
+            np.save(rep_index_sav, replicas_Nk)
 
-        return decorr_data, N_k
+        return decorr_data, N_k, replicas_deccor, replicas_Nk
 
     def replica_analysis(self, mask_windows=None):
         '''
@@ -101,14 +110,8 @@ class MBAR_Analysis():
         :return: list, containing average of bootstrapped dG and SEM
         '''
 
-        rep_decorr_data_sav = os.path.join(self.analysis_dir, 'fep_rep_decorr_data.npy')
-        rep_index_sav = os.path.join(self.analysis_dir, 'fep_rep_N_k.npy')
-
-        data = np.load(rep_decorr_data_sav)
-        Nk = np.load(rep_index_sav)
-
         replica_results = []
-        for d, n in zip(data, Nk):
+        for d, n in zip(self.rep_data, self.rep_N_k):
             results = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
             replica_results.append(results)
 
@@ -153,7 +156,7 @@ class MBAR_Analysis():
         result = ([DeltaF_ij[0, len(N_k) - 1], dDeltaF_ij[0, len(N_k) - 1]])
 
         # Save data to analysis dir
-        if mask_windows is None:
+        if self.analysis_dir is not None:
             np.save(os.path.join(self.analysis_dir, 'DeltaF_ij.npy'), DeltaF_ij)
             np.save(os.path.join(self.analysis_dir, 'dDeltaF_ij.npy'), dDeltaF_ij)
 
