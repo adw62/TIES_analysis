@@ -7,9 +7,10 @@ from ties_analysis.methods.FEP import *
 from ties_analysis.engines.openmm import Lambdas
 
 from pymbar.testsystems.harmonic_oscillators import HarmonicOscillatorsTestCase
-
 from pymbar import MBAR, timeseries
 
+#GLOBAL CONSTANTS
+KBT = 0.5961619840741075 #unit kilocalorie/mole assumed 300k
 
 class Test_MBAR(unittest.TestCase):
 
@@ -38,7 +39,8 @@ class Test_MBAR(unittest.TestCase):
                 u_kln[k, :, 0:N_k[k]] = u_kln[k, :, indices].T
             mbar = MBAR(u_kln, N_k)
             [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences()
-            result = ([DeltaF_ij[0, len(N_k) - 1], dDeltaF_ij[0, len(N_k) - 1]])
+            result = ([DeltaF_ij[0, len(N_k) - 1]*KBT,
+                       dDeltaF_ij[0, len(N_k) - 1]*KBT])
 
             self.assertEqual(round(avg, 5), round(result[0], 5), 'MBAR analysis failed')
 
