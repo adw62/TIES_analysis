@@ -10,8 +10,7 @@ from pymbar import MBAR, timeseries
 from ties_analysis.methods.TI import compute_bs_error
 
 #GLOBAL CONSTANTS
-KBT = 9.899500956022946e-25 #unit kilocalorie assumed 300k
-AVOGADRO_CONSTANT = 6.02214179e+23 #unit /mole
+KBT = 0.5961619840741075 #unit kilocalorie/mole assumed 300k
 
 class MBAR_Analysis():
     '''
@@ -157,8 +156,8 @@ class MBAR_Analysis():
         [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences()
 
         # print("Number of uncorrelated samples per state: {}".format(N_k))
-        result = ([DeltaF_ij[0, len(N_k) - 1]*KBT*AVOGADRO_CONSTANT,
-                   dDeltaF_ij[0, len(N_k) - 1]*KBT*AVOGADRO_CONSTANT]) #units kilocalorie per mol
+        result = ([DeltaF_ij[0, len(N_k) - 1]*KBT,
+                   dDeltaF_ij[0, len(N_k) - 1]*KBT]) #units kilocalorie per mol
 
         # Save data to analysis dir
         if self.analysis_dir is not None:
