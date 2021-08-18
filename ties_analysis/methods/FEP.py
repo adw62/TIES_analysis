@@ -76,7 +76,7 @@ class MBAR_Analysis():
         N_k = np.zeros([self.nstates], np.int32)
         decorr_data = np.zeros([self.nstates, self.nstates, tot_iter])
 
-        # to compute ensemble stdev we also would like to save the result for each replica speratly
+        # to compute ensemble stdev we also would like to save the result for each replica separately
         replicas_deccor = []
         replicas_Nk = []
         blank_decorr_data = np.zeros([self.nstates, self.nstates, iter_per_rep])
