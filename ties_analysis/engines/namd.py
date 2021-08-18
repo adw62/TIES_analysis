@@ -12,16 +12,16 @@ class NAMD(object):
     '''
     Class to perform TIES analysis on NAMD results
     '''
-    def __init__(self, method, output, win_mask, namd_version, vdw_a, vdw_d, ele_a, ele_d, iterations):
+    def __init__(self, method, output, win_mask, vdw_a, vdw_d, ele_a, ele_d, namd_version,iterations):
         '''
         :param method: str, 'TI' or 'FEP'
         :param output: str, pointing to base dir of where output will be writen
         :param win_mask: list of ints, what windows if any to remove from analysis
-        :param namd_version: float, for which version of NAMD generated alch files
         :param vdw_a: list of floats, describes lambda schedule for vdw appear
         :param vdw_d: list of floats, describes lambda schedule for vdw disappear
         :param ele_a: list of floats, describes lambda schedule for elec appear
         :param ele_d: list of floats, describes lambda schedule for elec disappear
+        :param namd_version: float, for which version of NAMD generated alch files
         :param iterations: int, number of iterations to expect in alch files
         '''
 
@@ -70,7 +70,7 @@ class NAMD(object):
         :return: numpy.array for all potential collected
         '''
 
-        results_dir_path = os.path.join(data_root, self.name, self.method, prot, lig, leg)
+        results_dir_path = os.path.join(data_root, prot, lig, leg)
 
         result_files = os.path.join(results_dir_path, 'LAMBDA_*', 'rep*', 'simulation', 'sim1.alch')
         result_files = list(glob.iglob(result_files))

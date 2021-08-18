@@ -113,7 +113,7 @@ class OpenMM(object):
         :return np.array() containing all the data in the result files concatenated
         '''
 
-        results_dir_path = os.path.join(data_root, self.name, prot, lig, leg)
+        results_dir_path = os.path.join(data_root, prot, lig, leg)
 
         if self.method == 'TI':
             TI_results_files = os.path.join(results_dir_path,  'LAMBDA_*', 'rep*', 'results',  '*TI.npy')
