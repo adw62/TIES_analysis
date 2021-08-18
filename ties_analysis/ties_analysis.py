@@ -58,7 +58,7 @@ class Analysis():
                     else:
                         for leg in cfg.simulation_legs:
                             print('result = {} SEM = {} for leg {}'.format(*leg_results[leg], leg))
-                        fin_result  = {leg: leg_results[leg] for leg in cfg.simulation_legs}
+                        fin_result = {leg: leg_results[leg] for leg in cfg.simulation_legs}
                         result[engine_id][prot_name][lig_name] = fin_result
 
         with open('./result.dat', 'w') as f:

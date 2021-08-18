@@ -33,18 +33,18 @@ class Config():
             namd_args = read_config(namd_cfg)
             namd_args['namd_version'] = namd_args['namd_version'][0]
             namd_args['iterations'] = namd_args['iterations'][0]
-            methods = namd_args['methods']
-            del namd_args['methods']
+            methods = general_args['methods']
             for method in methods:
-                namd = NAMD(method, self.analysis_dir, self.win_mask, **namd_args)
+                namd = NAMD(method, self.analysis_dir, self.win_mask, general_args['vdw_a'], general_args['vdw_d'],
+                            general_args['ele_a'], general_args['ele_d'], **namd_args)
                 self.engines.append(namd)
 
         if 'OpenMM' in self.engines_to_init:
             openmm_args = read_config(openmm_cfg)
-            methods = openmm_args['methods']
-            del openmm_args['methods']
+            methods = general_args['methods']
             for method in methods:
-                openmm = OpenMM(method, self.analysis_dir, self.win_mask, **openmm_args)
+                openmm = OpenMM(method, self.analysis_dir, self.win_mask, general_args['vdw_a'], general_args['vdw_d'],
+                            general_args['ele_a'], general_args['ele_d'], **openmm_args)
                 self.engines.append(openmm)
 
         if len(self.engines) == 0:
