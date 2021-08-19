@@ -18,9 +18,9 @@ class Test_NAMD(unittest.TestCase):
                              [ -70.0197,  -32.4018,  -67.8226,  -37.9828,  -87.3693,   -1.7703],
                              [-123.728,  -106.6641, -114.4813, -129.2575, -104.4866, -114.1935]])
 
-        data_base = './data/NAMD2/TI/test_read_data'
+        data_base = './data/test_read_data'
 
-        old  = read_alch_file(os.path.join(data_base, 'old.alch'), 2.11, 6)
+        old = read_alch_file(os.path.join(data_base, 'old.alch'), 2.11, 6)
         new = read_alch_file(os.path.join(data_base, 'new.alch'), 3, 6)
 
         self.assertIsNone(np.testing.assert_array_equal(old, old_data, 'Reading NAMD < 2.12 alch files incorrectly'))
@@ -32,13 +32,13 @@ class Test_NAMD(unittest.TestCase):
         ele_a = []
         ele_d = []
 
-        namd_ti = NAMD('TI', None, None, 2.12, vdw_a, vdw_d, ele_a, ele_d, 2001)
+        namd_ti = NAMD('TI', None, None, vdw_a, vdw_d, ele_a, ele_d, 2.12, 2001)
 
-        data_dir = './data/NAMD2/TI/test_collate/l6-l14/lig'
+        data_dir = './data/test_collate_namd/l6-l14/lig'
 
         ti_ans = np.load(os.path.join(data_dir, 'assembled_ti.npy'))
 
-        ti_built = namd_ti.collate_data('./data', 'test_collate', 'l6-l14', 'lig')
+        ti_built = namd_ti.collate_data('./data', 'test_collate_namd', 'l6-l14', 'lig')
 
         self.assertIsNone(np.testing.assert_array_equal(ti_ans, ti_built, 'TI result built incorrectly for NAMD2'))
 
