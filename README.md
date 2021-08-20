@@ -1,4 +1,4 @@
-<img src="https://github.com/adw62/TIES/blob/master/TIES/doc/source/_static/images/TIES_logov2.png" width="256">
+<img src="https://github.com/adw62/TIES_MD/blob/master/TIES_MD/doc/source/_static/images/TIES_logov2.png" width="256">
 
 # TIES analysis
 This package contains the code to perform analysis on the output from `TIES MD` and calculate binding free energies. For more information please see the main [TIES_MD](https://github.com/adw62/TIES_MD) repo.
