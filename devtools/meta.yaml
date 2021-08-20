@@ -1,0 +1,23 @@
+package:
+  name: ties_ana
+  version: 0.0.0
+
+source:
+  path: ../
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python==3.7.3
+    - setuptools
+  run:
+    - python
+    - numpy
+    - pymbar==3.0.3
+    - scikit-learn
+    - six
+
+about:
+  home: https://github.com/adw62/TIES_analysis
