@@ -54,7 +54,8 @@ class MBAR_Analysis():
 
             rep_decorr_data_sav = os.path.join(self.analysis_dir, 'fep_rep_decorr_data.npy')
             rep_index_sav = os.path.join(self.analysis_dir, 'fep_rep_N_k.npy')
-
+            
+            """
             if os.path.exists(decorr_data_sav) and os.path.exists(index_sav)\
                     and os.path.exists(rep_decorr_data_sav) and os.path.exists(rep_index_sav):
 
@@ -65,6 +66,7 @@ class MBAR_Analysis():
                 replicas_deccor = np.load(rep_decorr_data_sav)
                 replicas_Nk = np.load(rep_index_sav)
                 return decorr_data, N_k, replicas_deccor, replicas_Nk
+            """
 
         print('Decorrelating data...')
         iter_per_rep = self.shape[3]
@@ -72,7 +74,7 @@ class MBAR_Analysis():
         tot_iter = iter_per_rep * num_repeats
 
         # decorr data matrix is square for numpy convenience and padded with zeros.
-        # N_k allows know were the data ends and the padding begins in the matrix.
+        # N_k allows us to know were the data ends and the padding begins in the matrix.
         N_k = np.zeros([self.nstates], np.int32)
         decorr_data = np.zeros([self.nstates, self.nstates, tot_iter])
 
