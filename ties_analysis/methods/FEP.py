@@ -10,23 +10,25 @@ from pymbar import MBAR, timeseries
 from ties_analysis.methods.TI import compute_bs_error
 
 #GLOBAL CONSTANTS
-KBT = 0.5961619840741075 #unit kilocalorie/mole assumed 300k
+kb = 0.0019872066135803576 #unit kcal/(mole*kelvin)
 
 class MBAR_Analysis():
     '''
     Class for MBAR analysis
     '''
 
-    def __init__(self, MBARs, lambdas, analysis_dir):
+    def __init__(self, MBARs, temp, lambdas, analysis_dir):
         '''
 
         :param MBARs: numpy array for all results
+        :param temp: float for temperature in units of kelvin
         :param lambdas: Lambda class containing schedule
         :param analysis_dir, string file path for where to save analysis output
         '''
 
         self.data = MBARs
 
+        self.KBT = kb*temp #unit kcal/mol
         self.shape = list(self.data.shape)
         self.nstates = self.shape[1]
         print('Data shape is {} repeats, {} states_i, {} states_j, {} iterations'.format(*self.shape))
@@ -158,8 +160,8 @@ class MBAR_Analysis():
         [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences()
 
         # print("Number of uncorrelated samples per state: {}".format(N_k))
-        result = ([DeltaF_ij[0, len(N_k) - 1]*KBT,
-                   dDeltaF_ij[0, len(N_k) - 1]*KBT]) #units kilocalorie per mol
+        result = ([DeltaF_ij[0, len(N_k) - 1]*self.KBT,
+                   dDeltaF_ij[0, len(N_k) - 1]*self.KBT]) #units kilocalorie per mol
 
         # Save data to analysis dir
         if self.analysis_dir is not None:

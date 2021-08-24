@@ -35,7 +35,7 @@ class Analysis():
 
                     for leg in cfg.simulation_legs:
                         nice_print(leg)
-                        leg_results[leg] = engine.run_analysis(cfg.data_root, prot_name, lig_name, leg)
+                        leg_results[leg] = engine.run_analysis(cfg.data_root, cfg.temp, prot_name, lig_name, leg)
 
                     if len(cfg.simulation_legs) == 2:
                         print('Two thermodynamic legs found assuming this is a ddG calculation')

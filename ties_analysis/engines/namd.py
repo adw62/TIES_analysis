@@ -38,10 +38,11 @@ class NAMD(object):
         self.output = output
         self.win_mask = win_mask
 
-    def run_analysis(self,  data_root, prot, lig, leg):
+    def run_analysis(self,  data_root, temp, prot, lig, leg):
         '''
 
         :param data_root: str, file path point to base dir for results files
+        :param temp: float for temperature in units of kelvin (not used in NAMD as FEP not implemented)
         :param prot: str, name of dir for protein
         :param lig:  str, name of dir for ligand
         :param leg: str, name of dir for thermo leg

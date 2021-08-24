@@ -16,6 +16,7 @@ class Config():
         # general args specify where data is located what methods to use and any other parameters
         general_args = read_config(analysis_cfg)
 
+        self.temp = float(general_args['temperature'][0]) #unit = kelvin
         self.engines_to_init = general_args['engines']
         self.simulation_legs = general_args['legs']
         self.data_root = general_args['data_root'][0]

@@ -70,10 +70,11 @@ class OpenMM(object):
         self.fep_combine_reps = fep_combine_reps[0]
         self.win_mask = win_mask
 
-    def run_analysis(self, data_root, prot, lig, leg):
+    def run_analysis(self, data_root, temp, prot, lig, leg):
         '''
 
         :param data_root: str, file path point to base dir for results files
+        :param temp: float for temperature in units of kelvin
         :param prot: str, name of dir for protein
         :param lig:  str, name of dir for ligand
         :param leg: str, name of dir for thermo leg
@@ -84,7 +85,7 @@ class OpenMM(object):
         analysis_dir = os.path.join(self.output, self.name, self.method, prot, lig, leg)
 
         if self.method == 'FEP':
-            method_run = MBAR_Analysis(data, self.openmm_lambs, analysis_dir)
+            method_run = MBAR_Analysis(data, temp, self.openmm_lambs, analysis_dir)
         elif self.method == 'TI':
             method_run = TI_Analysis(data, self.openmm_lambs, analysis_dir)
 
