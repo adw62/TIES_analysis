@@ -26,7 +26,7 @@ class Test_MBAR(unittest.TestCase):
                           ele_d=[1.0, 0.5, 0.0, 0.0, 0.0])
 
             #use TIES code
-            mbar = MBAR_Analysis(MBARs=np.array([u_kln]), lambdas=lam, analysis_dir=None)
+            mbar = MBAR_Analysis(MBARs=np.array([u_kln]), temp=300, lambdas=lam, analysis_dir=None)
             avg, var = mbar.analysis()
 
             #check against minimal MBAR example
