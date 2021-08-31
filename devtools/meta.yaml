@@ -10,12 +10,11 @@ build:
 
 requirements:
   build:
-    - python==3.7.3
+    - python {{ python }}
     - setuptools
   run:
     - python
     - numpy
-    - pymbar==3.0.3
     - scikit-learn
     - six
 

@@ -5,7 +5,11 @@ import copy
 import os
 from pathlib import Path
 
-from pymbar import MBAR, timeseries
+try:
+    #pymbar my not be needed for TIES NAMD
+    from pymbar import MBAR, timeseries
+except ImportError:
+    pass
 
 from ties_analysis.methods.TI import compute_bs_error
 
