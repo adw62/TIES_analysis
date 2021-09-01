@@ -17,6 +17,7 @@ requirements:
     - numpy
     - scikit-learn
     - six
+    - pymbar
 
 about:
   home: https://github.com/adw62/TIES_analysis
