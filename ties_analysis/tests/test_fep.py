@@ -38,7 +38,7 @@ class Test_MBAR(unittest.TestCase):
                 N_k[k] = len(indices)
                 u_kln[k, :, 0:N_k[k]] = u_kln[k, :, indices].T
             mbar = MBAR(u_kln, N_k)
-            [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences()
+            [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences(return_theta=True)
             result = ([DeltaF_ij[0, len(N_k) - 1]*KBT,
                        dDeltaF_ij[0, len(N_k) - 1]*KBT])
 

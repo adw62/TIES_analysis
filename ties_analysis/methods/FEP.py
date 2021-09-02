@@ -157,10 +157,7 @@ class MBAR_Analysis():
 
         # Compute free energy differences and statistical uncertainties
         mbar = MBAR(u_kln, N_k)
-        try:
-            [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences()
-        except ValueError:
-            [DeltaF_ij, dDeltaF_ij] = mbar.getFreeEnergyDifferences()
+        [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences(return_theta=True)
 
         # print("Number of uncorrelated samples per state: {}".format(N_k))
         result = ([DeltaF_ij[0, len(N_k) - 1]*self.KBT,
