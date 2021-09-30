@@ -1,11 +1,11 @@
 <img src="https://github.com/adw62/TIES_MD/blob/master/TIES_MD/doc/source/_static/images/TIES_logov2.png" width="256">
 
 # TIES analysis
-This package contains the code to perform analysis on the output from `TIES MD` and calculate binding free energies. For more information please see the main [TIES_MD](https://github.com/adw62/TIES_MD) repo.
+This package contains the code to perform analysis on the output from `TIES MD` and calculate binding free energies. For more information please see the main [TIES_MD](https://github.com/UCL-CCS/TIES_MD) repo.
 
 # Installation and running
 
-TIES_analysis is installed as part of [TIES_MD](https://github.com/adw62/TIES_MD) it can also be installed seperately as follows:
+TIES_analysis is installed as part of [TIES_MD](https://github.com/UCL-CCS/TIES_MD) it can also be installed seperately as follows:
 
 If you do not already have a python environment setup for `TIES`:
 
