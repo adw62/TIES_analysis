@@ -32,6 +32,7 @@ class TI_Analysis(object):
 
         :param grads: numpy array for all results
         :param lambdas: Lambda class containing schedule
+        :param distribution: Boolean, if True then dGs will not be averaged and a distribution of results is returned
         :param analysis_dir: string, pointing to where we want analysis saved
         '''
 
@@ -94,7 +95,7 @@ class TI_Analysis(object):
 
             dlam = get_lam_diff(lambda_array)
 
-            # if dlam is not zero then bootstrap the repicas to get avg and var
+            # if dlam is not zero then bootstrap the replicas to get avg and var
             avg_var_by_state = np.array([compute_bs_error(state_data) if x != 0.0 else [0.0, 0.0] for
                                          state_data, x in zip(data[i], dlam)])
 

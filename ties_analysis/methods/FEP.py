@@ -41,6 +41,7 @@ class MBAR_Analysis():
         :param MBARs: numpy array for all results
         :param temp: float for temperature in units of kelvin
         :param lambdas: Lambda class containing schedule
+        :param distribution: Boolean, if True then dGs will not be averaged and a distribution of results is returned
         :param analysis_dir, string file path for where to save analysis output
         '''
 

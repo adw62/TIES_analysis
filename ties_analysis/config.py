@@ -20,22 +20,24 @@ __license__ = "LGPL"
 
 from ties_analysis.engines.openmm import OpenMM
 from ties_analysis.engines.namd import NAMD
+from ties_analysis.engines.gromacs import Gromacs
 
 class Config():
-    def __init__(self, namd_cfg='./namd.cfg', openmm_cfg='./openmm.cfg', analysis_cfg='./analysis.cfg'):
+    def __init__(self, analysis_cfg='./analysis.cfg'):
         '''
 
-        :param namd_cfg: str, path to file containing namd analysis params
-        :param openmm_cfg: path to file containing openmm analysis params
         :param analysis_cfg: path to file containing general analysis params
         '''
-
+        namd_cfg = './namd.cfg'
+        openmm_cfg = './openmm.cfg'
+        gromacs_cfg = './gromacs.cfg'
         # process general arg for analysis
         # general args specify where data is located what methods to use and any other parameters
         general_args = read_config(analysis_cfg)
 
         self.temp = float(general_args['temperature'][0]) #unit = kelvin
-        self.engines_to_init = general_args['engines']
+        self.distributions = general_args['distributions'][0]
+        self.engines_to_init = [x.lower() for x in general_args['engines']]
         self.simulation_legs = general_args['legs']
         self.data_root = general_args['data_root'][0]
         self.analysis_dir = general_args['output_dir'][0]
@@ -48,26 +50,32 @@ class Config():
 
         # Process engines
         self.engines = []
-        if 'NAMD2' in self.engines_to_init or 'NAMD3' in self.engines_to_init:
+        if 'namd2' in self.engines_to_init or 'namd3' in self.engines_to_init:
             namd_args = read_config(namd_cfg)
             namd_args['namd_version'] = namd_args['namd_version'][0]
             namd_args['iterations'] = namd_args['iterations'][0]
             methods = general_args['methods']
             for method in methods:
-                namd = NAMD(method, self.analysis_dir, self.win_mask, general_args['vdw_a'], general_args['vdw_d'],
-                            general_args['ele_a'], general_args['ele_d'], **namd_args)
+                namd = NAMD(method, self.analysis_dir, self.win_mask, **namd_args)
                 self.engines.append(namd)
 
-        if 'OpenMM' in self.engines_to_init:
+        if 'openmm' in self.engines_to_init:
             openmm_args = read_config(openmm_cfg)
             methods = general_args['methods']
             for method in methods:
-                openmm = OpenMM(method, self.analysis_dir, self.win_mask, general_args['vdw_a'], general_args['vdw_d'],
-                            general_args['ele_a'], general_args['ele_d'], **openmm_args)
+                openmm = OpenMM(method, self.analysis_dir, self.win_mask, **openmm_args)
                 self.engines.append(openmm)
 
+        if 'gromacs' in self.engines_to_init:
+            gro_args = read_config(gromacs_cfg)
+            methods = general_args['methods']
+            gro_args['iterations'] = gro_args['iterations'][0]
+            for method in methods:
+                gro = Gromacs(method, self.analysis_dir, self.win_mask, **gro_args)
+                self.engines.append(gro)
+
         if len(self.engines) == 0:
-            raise ValueError('No support engines requested. Please choose from (NAMD2/NAMD3/OpenMM)')
+            raise ValueError('No support engines requested. Please choose from (NAMD2/NAMD3/OpenMM/GROMACS)')
 
         #process exp data
         # EXP data specifies what proteins and ligands to look at

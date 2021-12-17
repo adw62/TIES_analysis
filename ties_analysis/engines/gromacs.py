@@ -26,32 +26,70 @@ import numpy as np
 from ties_analysis.engines.openmm import Lambdas
 from ties_analysis.methods.TI import TI_Analysis
 
-class NAMD(object):
+class GMX_Lambdas():
     '''
-    Class to perform TIES analysis on NAMD results
+    Class: holds the information about a lambda schedule in an easily queryable format (GMX)
     '''
-    def __init__(self, method, output, win_mask, vdw_a, vdw_d, ele_a, ele_d, namd_version, iterations):
+
+    def __init__(self, mass, coul, vdw, bonded, restraint):
+        '''
+
+        :param mass: list of floats, describes lambda schedule for mass
+        :param coul: list of floats, describes lambda schedule for columb
+        :param vdw: list of floats, describes lambda schedule for vdw
+        :param bonded list of floats, describes lambda schedule for bonded
+        :param restraint list of floats, describes lambda schedule for restraint
+        '''
+        self.lambda_mass = [float(x) for x in mass]
+        self.lambda_coul = [float(x) for x in coul]
+        self.lambda_vdw = [float(x) for x in vdw]
+        self.lambda_bonded = [float(x) for x in bonded]
+        self.lambda_res = [float(x) for x in restraint]
+
+        assert (len(self.lambda_mass) == len(self.lambda_coul))
+        assert (len(self.lambda_coul) == len(self.lambda_vdw))
+        assert (len(self.lambda_vdw) == len(self.lambda_bonded))
+        assert (len(self.lambda_bonded) == len(self.lambda_res))
+
+        self.schedule = []
+        for i, (m, c, v, b, r) in enumerate(zip(self.lambda_mass, self.lambda_coul, self.lambda_vdw,
+                                                self.lambda_bonded, self.lambda_res)):
+            param_vals = {'lambda_mass': m, 'lambda_coul': c, 'lambda_vdw': v,
+                          'lambda_bonded': b, 'lambda_res': r}
+            self.schedule.append(param_vals)
+
+    def update_attrs_from_schedule(self):
+        '''
+        helper function to update the values of self.lambda_mass etc if the self.schedule is changed
+        '''
+        self.lambda_mass = [x['lambda_mass'] for x in self.schedule]
+        self.lambda_vdw = [x['lambda_vdw'] for x in self.schedule]
+        self.lambda_coul = [x['lambda_coul'] for x in self.schedule]
+        self.lambda_bonded = [x['lambda_bonded'] for x in self.schedule]
+        self.lambda_res = [x['lambda_res'] for x in self.schedule]
+
+class Gromacs(object):
+    '''
+    Class to perform TIES analysis on GROMACS results
+    '''
+    def __init__(self, method, output, win_mask, lambda_mass, lambda_coul, lambda_vdw, lambda_bonded,
+                 lambda_restraint, iterations):
         '''
         :param method: str, 'TI' or 'FEP'
         :param output: str, pointing to base dir of where output will be writen
         :param win_mask: list of ints, what windows if any to remove from analysis
-        :param vdw_a: list of floats, describes lambda schedule for vdw appear
-        :param vdw_d: list of floats, describes lambda schedule for vdw disappear
-        :param ele_a: list of floats, describes lambda schedule for elec appear
-        :param ele_d: list of floats, describes lambda schedule for elec disappear
-        :param namd_version: float, for which version of NAMD generated alch files
+        :param lambda_mass: list of floats, describes lambda schedule for mass
+        :param lambda_coul: list of floats, describes lambda schedule for columb
+        :param lambda_vdw: list of floats, describes lambda schedule for vdw
+        :param lambda_bonded list of floats, describes lambda schedule for bonded
+        :param lambda_restraint list of floats, describes lambda schedule for restraint
         :param iterations: int, number of iterations to expect in alch files
         '''
 
-        self.namd_ver = float(namd_version)
-
-        if self.namd_ver < 3:
-            self.name = 'NAMD2'
-        else:
-            self.name = 'NAMD3'
+        self.name = 'Gromacs'
         self.iter = int(iterations)
         self.method = method
-        self.namd_lambs = Lambdas(vdw_a, vdw_d, ele_a, ele_d)
+        self.gro_lambs = GMX_Lambdas(lambda_mass, lambda_coul, lambda_vdw, lambda_bonded, lambda_restraint)
         self.output = output
         self.win_mask = win_mask
 
@@ -72,7 +110,7 @@ class NAMD(object):
         data = self.collate_data(data_root, prot, lig, leg)
         analysis_dir = os.path.join(self.output, self.name, self.method, prot, lig, leg)
 
-        method_run = TI_Analysis(data, self.namd_lambs, analysis_dir)
+        method_run = TI_Analysis(data, self.gro_lambs, analysis_dir)
 
         result = method_run.analysis(mask_windows=self.win_mask)
 
@@ -80,7 +118,7 @@ class NAMD(object):
 
     def collate_data(self, data_root, prot, lig, leg):
         '''
-        Function to iterate over replica and window dirs reading NAMD alch file and building numpy array of potentials
+        Function to iterate over replica and window dirs reading GROMACS xvg file and building numpy array of potentials
         :param data_root: str, file path point to base dir for results files
         :param prot: str, name of dir for protein
         :param lig:  str, name of dir for ligand
@@ -90,7 +128,7 @@ class NAMD(object):
 
         results_dir_path = os.path.join(data_root, prot, lig, leg)
 
-        result_files = os.path.join(results_dir_path, 'LAMBDA_*', 'rep*', 'simulation', 'sim1.alch')
+        result_files = os.path.join(results_dir_path, 'LAMBDA_*', 'rep*', 'simulation', 'prod.xvg')
         result_files = list(glob.iglob(result_files))
 
         if len(result_files) == 0:
@@ -99,15 +137,15 @@ class NAMD(object):
         # Sort by order of windows
         result_files.sort(key=get_window)
 
-        #print('Processing files...')
-        #for file in result_files:
-        #    print(file)
+        print('Processing files...')
+        for file in result_files:
+            print(file)
 
         # Use ordered dict to preserve windows order
         all_data = collections.OrderedDict()
         for file in result_files:
             window = get_window(file)
-            data = read_alch_file(file, self.namd_ver, self.iter)
+            data = read_prod_file(file, self.iter)
             data = np.array([data])
             if window not in all_data:
                 all_data[window] = data
@@ -122,30 +160,24 @@ class NAMD(object):
 
         return concat_windows
 
-def read_alch_file(file_path, namd_ver, iterations):
+def read_prod_file(file_path, iterations):
     '''
 
-    :param file_path: str, location of namd alch file
-    :param namd_ver: float, new or old used to specify what format of namd alch file we are looking at (old <= 2.12)
-    :param iterations: int, Number sample in alch file
-    :return: numpy array, contains potentials from one namd alch file
+    :param file_path: str, location of GROMACS xvg file
+    :param iterations: int, Number sample in GROMACS xvg file
+    :return: numpy array, contains potentials from one GROMACS file
     '''
     # final data has order sterics appear/dis elec appear/dis to match openmm
-    data = np.zeros([4, iterations])
+    data = np.zeros([5, iterations])
     with open(file_path) as f:
         count = 0
         for line in f:
-            if line[0:2] == 'TI':
+            if line[0:1] != '@' and line[0:1] != '#':
                 split_line = line.split()
-                if namd_ver > 2.12:
-                    data[:, count] = [float(split_line[6]), float(split_line[12]),
-                                      float(split_line[4]), float(split_line[10])]
-                elif namd_ver <= 2.12:
-                    data[:, count] = [float(split_line[4]), float(split_line[8]),
-                                      float(split_line[2]), float(split_line[6])]
-                else:
-                    raise ValueError('Unknown NAMD ver. {}'.format(namd_ver))
-
+                #mass, coul, vdw, bonded, restraint
+                data[:, count] = [float(split_line[1]), float(split_line[2]),
+                                  float(split_line[3]), float(split_line[4]),
+                                  float(split_line[5])]
                 count += 1
     return data
 
