@@ -176,4 +176,5 @@ def get_window(string):
     '''
     Helper function to sort directory paths by specific index in file name
     '''
-    return int(string.split('LAMBDA_')[-1][0])
+    path = os.path.normpath(string)
+    return float(path.split(os.sep)[-4].split('_')[1])

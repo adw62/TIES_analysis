@@ -150,5 +150,8 @@ def read_alch_file(file_path, namd_ver, iterations):
     return data
 
 def get_window(string):
+    '''
+    Helper function to sort directory paths by specific index in file name
+    '''
     path = os.path.normpath(string)
     return float(path.split(os.sep)[-4].split('_')[1])
