@@ -39,7 +39,7 @@ class NAMD(object):
         :param vdw_d: list of floats, describes lambda schedule for vdw disappear
         :param ele_a: list of floats, describes lambda schedule for elec appear
         :param ele_d: list of floats, describes lambda schedule for elec disappear
-        :param iterations: int, number of iterations to expect in alch files
+        :param namd_version: float, for which version of NAMD generated alch files
         '''
 
         self.namd_ver = float(namd_version)
