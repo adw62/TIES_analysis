@@ -30,7 +30,7 @@ class NAMD(object):
     '''
     Class to perform TIES analysis on NAMD results
     '''
-    def __init__(self, method, output, win_mask, vdw_a, vdw_d, ele_a, ele_d, namd_version, iterations):
+    def __init__(self, method, output, win_mask, vdw_a, vdw_d, ele_a, ele_d, namd_version):
         '''
         :param method: str, 'TI' or 'FEP'
         :param output: str, pointing to base dir of where output will be writen
@@ -39,7 +39,6 @@ class NAMD(object):
         :param vdw_d: list of floats, describes lambda schedule for vdw disappear
         :param ele_a: list of floats, describes lambda schedule for elec appear
         :param ele_d: list of floats, describes lambda schedule for elec disappear
-        :param namd_version: float, for which version of NAMD generated alch files
         :param iterations: int, number of iterations to expect in alch files
         '''
 
@@ -49,7 +48,6 @@ class NAMD(object):
             self.name = 'NAMD2'
         else:
             self.name = 'NAMD3'
-        self.iter = int(iterations)
         self.method = method
         self.namd_lambs = Lambdas(vdw_a, vdw_d, ele_a, ele_d)
         self.output = output
@@ -99,6 +97,8 @@ class NAMD(object):
         # Sort by order of windows
         result_files.sort(key=get_window)
 
+        iterations = get_iter(result_files[0])
+
         #print('Processing files...')
         #for file in result_files:
         #    print(file)
@@ -107,7 +107,7 @@ class NAMD(object):
         all_data = collections.OrderedDict()
         for file in result_files:
             window = get_window(file)
-            data = read_alch_file(file, self.namd_ver, self.iter)
+            data = read_alch_file(file, self.namd_ver, iterations)
             data = np.array([data])
             if window not in all_data:
                 all_data[window] = data
@@ -148,6 +148,15 @@ def read_alch_file(file_path, namd_ver, iterations):
 
                 count += 1
     return data
+
+def get_iter(file_loc):
+    iterations = 0
+    with open(file_loc) as f:
+        for line in f:
+            if line[0:2] == 'TI':
+                iterations += 1
+    return iterations
+
 
 def get_window(string):
     '''

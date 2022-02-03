@@ -53,7 +53,6 @@ class Config():
         if 'namd2' in self.engines_to_init or 'namd3' in self.engines_to_init:
             namd_args = read_config(namd_cfg)
             namd_args['namd_version'] = namd_args['namd_version'][0]
-            namd_args['iterations'] = namd_args['iterations'][0]
             methods = general_args['methods']
             for method in methods:
                 namd = NAMD(method, self.analysis_dir, self.win_mask, **namd_args)
