@@ -36,7 +36,7 @@ class Config():
         general_args = read_config(analysis_cfg)
 
         self.temp = float(general_args['temperature'][0]) #unit = kelvin
-        self.distributions = general_args['distributions'][0]
+        self.distributions = bool(int(general_args['distributions'][0]))
         self.engines_to_init = [x.lower() for x in general_args['engines']]
         self.simulation_legs = general_args['legs']
         self.data_root = general_args['data_root'][0]
@@ -55,14 +55,14 @@ class Config():
             namd_args['namd_version'] = namd_args['namd_version'][0]
             methods = general_args['methods']
             for method in methods:
-                namd = NAMD(method, self.analysis_dir, self.win_mask, **namd_args)
+                namd = NAMD(method, self.analysis_dir, self.win_mask, self.distributions, **namd_args)
                 self.engines.append(namd)
 
         if 'openmm' in self.engines_to_init:
             openmm_args = read_config(openmm_cfg)
             methods = general_args['methods']
             for method in methods:
-                openmm = OpenMM(method, self.analysis_dir, self.win_mask, **openmm_args)
+                openmm = OpenMM(method, self.analysis_dir, self.win_mask, self.distributions, **openmm_args)
                 self.engines.append(openmm)
 
         if 'gromacs' in self.engines_to_init:
@@ -70,7 +70,7 @@ class Config():
             methods = general_args['methods']
             gro_args['iterations'] = gro_args['iterations'][0]
             for method in methods:
-                gro = Gromacs(method, self.analysis_dir, self.win_mask, **gro_args)
+                gro = Gromacs(method, self.analysis_dir, self.win_mask, self.distributions, **gro_args)
                 self.engines.append(gro)
 
         if len(self.engines) == 0:

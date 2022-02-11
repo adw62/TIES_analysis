@@ -45,12 +45,12 @@ class TI_Analysis(object):
         #directory where any TI specific output could be saved, not curretly used
         self.analysis_dir = analysis_dir
 
-        # Do a check that this is the shape of data we would expect from the config file
         print('Data shape is {} repeats, {} states, {} lambda dimensions, {} iterations'.format(*self.shape))
 
-    def analysis(self, mask_windows=None):
+    def analysis(self, distributions=False, mask_windows=None):
         '''
         Perform TI analysis
+        :param distributions bool, Do we want to calculate the dG for each rep individually
         :param mask_windows list of ints, specify windows to remove from analysis
         :return: list, dG calculated by TI and associated standard deviation
         '''
@@ -67,6 +67,14 @@ class TI_Analysis(object):
                 avg_over_iterations = np.delete(avg_over_iterations, win, axis=1)
                 del lambdas.schedule[win]
         lambdas.update_attrs_from_schedule()
+
+        if distributions:
+            dist_free_energy = []
+            for rep in avg_over_iterations:
+                free_energy, _ = self.intergrate(np.array([rep]).transpose(), lambdas)
+                dist_free_energy.append(sum(free_energy.values()))
+            print('dG for each replica:')
+            print(dist_free_energy)
 
         free_energy, variance = self.intergrate(avg_over_iterations.transpose(), lambdas)
 

@@ -129,9 +129,10 @@ class MBAR_Analysis():
 
         return decorr_data, N_k, replicas_deccor, replicas_Nk
 
-    def replica_analysis(self, mask_windows=None):
+    def replica_analysis(self, distributions=False, mask_windows=None):
         '''
         Function to make analysis of result from MBAR considering each trajectory as one replica
+        :param distributions bool, Do we want to calculate the dG for each rep individually
         :param mask_windows: list of ints, can be used to specify what windows to remove
         :return: list, containing average of bootstrapped dG and SEM
         '''
@@ -143,8 +144,9 @@ class MBAR_Analysis():
 
         # x[1] here is MBAR error which is not used
         dg = [x[0] for x in replica_results]
-        #print('dG for each replica')
-        #print(dg)
+        if distributions:
+            print('dG for each replica:')
+            print(dg)
 
         result = compute_bs_error(dg)
         return [result[0], np.sqrt(result[1])]

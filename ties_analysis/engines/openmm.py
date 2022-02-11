@@ -69,11 +69,12 @@ class OpenMM(object):
     '''
     Class to perform TIES analysis on OpenMM_TIES results
     '''
-    def __init__(self, method, output, win_mask, vdw_a, vdw_d, ele_a, ele_d, fep_combine_reps):
+    def __init__(self, method, output, win_mask, distributions, vdw_a, vdw_d, ele_a, ele_d, fep_combine_reps):
         '''
         :param method: str, 'TI' or 'FEP'
         :param output: str, pointing to base dir of where output will be writen
         :param win_mask: list of ints, what windows if any to remove from analysis
+        :param distributions bool, Do we want to calculate the dG for each rep individually
         :param vdw_a: list of floats, describes lambda schedule for vdw appear
         :param vdw_d: list of floats, describes lambda schedule for vdw disappear
         :param ele_a: list of floats, describes lambda schedule for elec appear
@@ -87,6 +88,7 @@ class OpenMM(object):
         self.output = output
         self.fep_combine_reps = fep_combine_reps[0]
         self.win_mask = win_mask
+        self.distributions = distributions
 
     def run_analysis(self, data_root, temp, prot, lig, leg):
         '''
@@ -111,14 +113,16 @@ class OpenMM(object):
         if self.method == 'FEP' and self.fep_combine_reps.lower() == 'true':
             print('Running MBAR analysis with all replica time series combined.')
             print('Errors will be estimated by PYMBAR')
+            if self.distributions:
+                print('If combining FEP data distributions cant be calculated ignoring distributions=True in analysis.cfg')
             result = method_run.analysis(mask_windows=self.win_mask)
             #convert stdev given by pymbar to SEM
             result = [result[0], result[1]/np.sqrt(data.shape[0])]
         elif self.method == 'FEP':
-            result = method_run.replica_analysis(mask_windows=self.win_mask)
+            result = method_run.replica_analysis(distributions=self.distributions, mask_windows=self.win_mask)
 
         else:
-            result = method_run.analysis(mask_windows=self.win_mask)
+            result = method_run.analysis(distributions=self.distributions, mask_windows=self.win_mask)
 
         return result
 

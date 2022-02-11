@@ -30,11 +30,12 @@ class NAMD(object):
     '''
     Class to perform TIES analysis on NAMD results
     '''
-    def __init__(self, method, output, win_mask, vdw_a, vdw_d, ele_a, ele_d, namd_version):
+    def __init__(self, method, output, win_mask, distributions, vdw_a, vdw_d, ele_a, ele_d, namd_version):
         '''
         :param method: str, 'TI' or 'FEP'
         :param output: str, pointing to base dir of where output will be writen
         :param win_mask: list of ints, what windows if any to remove from analysis
+        :param distributions bool, Do we want to calculate the dG for each rep individually
         :param vdw_a: list of floats, describes lambda schedule for vdw appear
         :param vdw_d: list of floats, describes lambda schedule for vdw disappear
         :param ele_a: list of floats, describes lambda schedule for elec appear
@@ -52,6 +53,7 @@ class NAMD(object):
         self.namd_lambs = Lambdas(vdw_a, vdw_d, ele_a, ele_d)
         self.output = output
         self.win_mask = win_mask
+        self.distributions = distributions
 
     def run_analysis(self,  data_root, temp, prot, lig, leg):
         '''
@@ -71,8 +73,7 @@ class NAMD(object):
         analysis_dir = os.path.join(self.output, self.name, self.method, prot, lig, leg)
 
         method_run = TI_Analysis(data, self.namd_lambs, analysis_dir)
-
-        result = method_run.analysis(mask_windows=self.win_mask)
+        result = method_run.analysis(distributions=self.distributions, mask_windows=self.win_mask)
 
         return result
 
