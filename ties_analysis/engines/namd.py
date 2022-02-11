@@ -148,6 +148,8 @@ def read_alch_file(file_path, namd_ver, iterations):
                     raise ValueError('Unknown NAMD ver. {}'.format(namd_ver))
 
                 count += 1
+    if count != iterations:
+        print('WARNING: {} terminated early only found {}/{} iterations.'.format(file_path, count, iterations))
     return data
 
 def get_iter(file_loc):
