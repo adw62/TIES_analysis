@@ -79,14 +79,14 @@ class OpenMM(object):
         :param vdw_d: list of floats, describes lambda schedule for vdw disappear
         :param ele_a: list of floats, describes lambda schedule for elec appear
         :param ele_d: list of floats, describes lambda schedule for elec disappear
-        :param fep_combine_reps: str: 'True' or 'False' and option to combine fep replicas into one time series
+        :param fep_combine_reps: bool: 1 or 0 an option to combine fep replicas into one time series
         '''
 
         self.name = 'OpenMM'
         self.method = method
         self.openmm_lambs = Lambdas(vdw_a, vdw_d, ele_a, ele_d)
         self.output = output
-        self.fep_combine_reps = fep_combine_reps[0]
+        self.fep_combine_reps = bool(int(fep_combine_reps[0]))
         self.win_mask = win_mask
         self.distributions = distributions
 

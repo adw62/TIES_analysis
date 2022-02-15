@@ -13,8 +13,8 @@ class Test_OpenMM(unittest.TestCase):
         ele_a=[]
         ele_d=[]
 
-        openmm_fep = OpenMM('FEP', None, None, vdw_a, vdw_d, ele_a, ele_d, [False])
-        openmm_ti = OpenMM('TI', None, None, vdw_a, vdw_d, ele_a, ele_d, [False])
+        openmm_fep = OpenMM('FEP', None, None, [0], vdw_a, vdw_d, ele_a, ele_d, [0])
+        openmm_ti = OpenMM('TI', None, None, [0], vdw_a, vdw_d, ele_a, ele_d, [0])
 
         data_dir = './data/test_collate_openmm/ethane_zero/leg1'
 
