@@ -21,6 +21,7 @@ __license__ = "LGPL"
 from ties_analysis.engines.openmm import OpenMM
 from ties_analysis.engines.namd import NAMD
 from ties_analysis.engines.gromacs import Gromacs
+from ties_analysis.engines._numpy import Numpy
 
 class Config():
     def __init__(self, analysis_cfg='./analysis.cfg'):
@@ -30,6 +31,7 @@ class Config():
         '''
         namd_cfg = './namd.cfg'
         openmm_cfg = './openmm.cfg'
+        numpy_cfg = './numpy.cfg'
         gromacs_cfg = './gromacs.cfg'
         # process general arg for analysis
         # general args specify where data is located what methods to use and any other parameters
@@ -87,6 +89,14 @@ class Config():
                 gro = Gromacs(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
                               self.sampling_convg, **gro_args)
                 self.engines.append(gro)
+
+        if 'numpy' in self.engines_to_init:
+            numpy_args = read_config(openmm_cfg)
+            methods = general_args['methods']
+            for method in methods:
+                numpy = Numpy(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                              self.sampling_convg, **numpy_args)
+                self.engines.append(numpy)
 
         if len(self.engines) == 0:
             raise ValueError('No support engines requested. Please choose from (NAMD2/NAMD3/OpenMM/GROMACS)')
