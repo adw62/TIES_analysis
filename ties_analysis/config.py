@@ -41,12 +41,24 @@ class Config():
         self.simulation_legs = general_args['legs']
         self.data_root = general_args['data_root'][0]
         self.analysis_dir = general_args['output_dir'][0]
+        self.rep_convg = general_args['rep_convg'][0]
+        self.sampling_convg = general_args['sampling_convg'][0]
 
         # what alchemical windows to remove from analysis
         if general_args['windows_mask'][0] != 'None':
             self.win_mask = [int(x) for x in general_args['windows_mask']]
         else:
             self.win_mask = None
+
+        if general_args['rep_convg'][0] != 'None':
+            self.rep_convg = [int(x) for x in general_args['rep_convg']]
+        else:
+            self.rep_convg = None
+
+        if general_args['sampling_convg'][0] != 'None':
+            self.sampling_convg = [int(x) for x in general_args['sampling_convg']]
+        else:
+            self.sampling_convg = None
 
         # Process engines
         self.engines = []
@@ -55,14 +67,16 @@ class Config():
             namd_args['namd_version'] = namd_args['namd_version'][0]
             methods = general_args['methods']
             for method in methods:
-                namd = NAMD(method, self.analysis_dir, self.win_mask, self.distributions, **namd_args)
+                namd = NAMD(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                            self.sampling_convg, **namd_args)
                 self.engines.append(namd)
 
         if 'openmm' in self.engines_to_init:
             openmm_args = read_config(openmm_cfg)
             methods = general_args['methods']
             for method in methods:
-                openmm = OpenMM(method, self.analysis_dir, self.win_mask, self.distributions, **openmm_args)
+                openmm = OpenMM(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                                self.sampling_convg, **openmm_args)
                 self.engines.append(openmm)
 
         if 'gromacs' in self.engines_to_init:
@@ -70,7 +84,8 @@ class Config():
             methods = general_args['methods']
             gro_args['iterations'] = gro_args['iterations'][0]
             for method in methods:
-                gro = Gromacs(method, self.analysis_dir, self.win_mask, self.distributions, **gro_args)
+                gro = Gromacs(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                              self.sampling_convg, **gro_args)
                 self.engines.append(gro)
 
         if len(self.engines) == 0:

@@ -45,9 +45,9 @@ class TI_Analysis(object):
         #directory where any TI specific output could be saved, not curretly used
         self.analysis_dir = analysis_dir
 
-        print('Data shape is {} repeats, {} states, {} lambda dimensions, {} iterations'.format(*self.shape))
+        print('Data shape is {} repeats, {} states, {} lambda dimensions, {} iterations\n'.format(*self.shape))
 
-    def analysis(self, distributions=False, mask_windows=None):
+    def analysis(self, distributions=False, rep_convg=None, sampling_convg=None, mask_windows=None):
         '''
         Perform TI analysis
         :param distributions bool, Do we want to calculate the dG for each rep individually
@@ -55,19 +55,34 @@ class TI_Analysis(object):
         :return: list, dG calculated by TI and associated standard deviation
         '''
 
-        avg_over_iterations = np.average(self.data, axis=3)
-
+        data = copy.deepcopy(self.data)
         lambdas = copy.deepcopy(self.lambdas)
-        # remove windows
+
+        # remove windows if requested
         if mask_windows is not None:
             mask_windows.sort()
             mask_windows.reverse()
             print('Removing windows {}'.format(mask_windows))
             for win in mask_windows:
-                avg_over_iterations = np.delete(avg_over_iterations, win, axis=1)
+                data = np.delete(data, win, axis=1)
                 del lambdas.schedule[win]
         lambdas.update_attrs_from_schedule()
 
+        #iterate over sampling and compute dg if requested
+        if sampling_convg is not None:
+            sampling_free_energy = []
+            for sampling in sampling_convg:
+                avg_over_iterations = np.average(data[:, :, :, 0:sampling], axis=3)
+                free_energy, variance = self.intergrate(avg_over_iterations.transpose(), lambdas)
+                result = [sum(free_energy.values()), np.sqrt(sum(variance.values()))]
+                sampling_free_energy.append(result)
+            print('Convergence with number of samples:')
+            print(sampling_convg)
+            print(sampling_free_energy)
+            print('')
+
+        avg_over_iterations = np.average(data, axis=3)
+        #compute dgs seperatly for each replica if requested
         if distributions:
             dist_free_energy = []
             for rep in avg_over_iterations:
@@ -75,13 +90,28 @@ class TI_Analysis(object):
                 dist_free_energy.append(sum(free_energy.values()))
             print('dG for each replica:')
             print(dist_free_energy)
+            print('')
 
+        #iterate overs chuncks of replicas and compute dg if requested
+        if rep_convg is not None:
+            rep_free_energy = []
+            for rep in rep_convg:
+                free_energy, variance = self.intergrate(avg_over_iterations[0:rep].transpose(), lambdas)
+                result = [sum(free_energy.values()), np.sqrt(sum(variance.values()))]
+                rep_free_energy.append(result)
+            print('Convergence with number of reps:')
+            print(rep_convg)
+            print(rep_free_energy)
+            print('')
+
+        #compute dg for all reps and sampling this is the result that is returned
         free_energy, variance = self.intergrate(avg_over_iterations.transpose(), lambdas)
 
         print('Free energy breakdown:')
         print(free_energy)
         print('Variance breakdown:')
         print(variance)
+        print('')
 
         return [sum(free_energy.values()), np.sqrt(sum(variance.values()))]
 
@@ -139,6 +169,7 @@ def compute_bs_error(replicas):
         boot = [resample(replicas, replace=True, n_samples=len(replicas)) for x in range(5000)]
         avg_per_boot_sample = np.average(boot, axis=1)
     else:
+        print('Warning asked for variance of 1 replica')
         return replicas[0], 0.0
 
     return np.average(avg_per_boot_sample), np.var(avg_per_boot_sample, ddof=1)

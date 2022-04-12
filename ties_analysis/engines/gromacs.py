@@ -72,13 +72,16 @@ class Gromacs(object):
     '''
     Class to perform TIES analysis on GROMACS results
     '''
-    def __init__(self, method, output, win_mask, distributions, lambda_mass, lambda_coul, lambda_vdw, lambda_bonded,
-                 lambda_restraint, iterations):
+    def __init__(self, method, output, win_mask, distributions, rep_convg, sampling_convg,
+                 lambda_mass, lambda_coul, lambda_vdw, lambda_bonded, lambda_restraint, iterations):
         '''
         :param method: str, 'TI' or 'FEP'
         :param output: str, pointing to base dir of where output will be writen
         :param win_mask: list of ints, what windows if any to remove from analysis
         :param distributions bool, Do we want to calculate the dG for each rep individually
+        :param rep_convg: list of ints, what intermediate number of reps do you wish to inspect convergence for
+        :param sampling_convg: list of ints, what intermediate amount of sampling do
+         you wish to inspect convergence for
         :param lambda_mass: list of floats, describes lambda schedule for mass
         :param lambda_coul: list of floats, describes lambda schedule for columb
         :param lambda_vdw: list of floats, describes lambda schedule for vdw
@@ -94,6 +97,8 @@ class Gromacs(object):
         self.output = output
         self.win_mask = win_mask
         self.distributions = distributions
+        self.rep_convg = rep_convg
+        self.sampling_convg = sampling_convg
 
     def run_analysis(self,  data_root, temp, prot, lig, leg):
         '''
@@ -113,7 +118,7 @@ class Gromacs(object):
         analysis_dir = os.path.join(self.output, self.name, self.method, prot, lig, leg)
 
         method_run = TI_Analysis(data, self.gro_lambs, analysis_dir)
-        result = method_run.analysis(distributions=self.distributions, mask_windows=self.win_mask)
+        result = method_run.analysis(self.distributions, self.rep_convg, self.sampling_convg, self.win_mask)
 
         return result
 

@@ -32,7 +32,7 @@ class Test_NAMD(unittest.TestCase):
         ele_a = []
         ele_d = []
 
-        namd_ti = NAMD('TI', None, None, [0], vdw_a, vdw_d, ele_a, ele_d, 2.12)
+        namd_ti = NAMD('TI', None, None, None, None, [0], vdw_a, vdw_d, ele_a, ele_d, 2.12)
 
         data_dir = './data/test_collate_namd/l6-l14/lig'
 

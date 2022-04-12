@@ -50,7 +50,7 @@ class MBAR_Analysis():
         self.KBT = kb*temp #unit kcal/mol
         self.shape = list(self.data.shape)
         self.nstates = self.shape[1]
-        print('Data shape is {} repeats, {} states_i, {} states_j, {} iterations'.format(*self.shape))
+        print('Data shape is {} repeats, {} states_i, {} states_j, {} iterations\n'.format(*self.shape))
 
         self.lambdas = lambdas
 
@@ -129,13 +129,44 @@ class MBAR_Analysis():
 
         return decorr_data, N_k, replicas_deccor, replicas_Nk
 
-    def replica_analysis(self, distributions=False, mask_windows=None):
+    def replica_analysis(self, distributions=False, rep_convg=None, sampling_convg=None, mask_windows=None):
         '''
         Function to make analysis of result from MBAR considering each trajectory as one replica
         :param distributions bool, Do we want to calculate the dG for each rep individually
         :param mask_windows: list of ints, can be used to specify what windows to remove
         :return: list, containing average of bootstrapped dG and SEM
         '''
+
+        replica_results = []
+        if sampling_convg is not None:
+            sampling_free_energy = []
+            for sampling in sampling_convg:
+                for d, n in zip(self.rep_data, self.rep_N_k):
+                    tmp_nk = [x if x < sampling else sampling for x in n]
+                    results = self.analysis(u_kln=d[:, :, 0:sampling], N_k=tmp_nk, mask_windows=mask_windows)
+                    replica_results.append(results)
+                dg = [x[0] for x in replica_results]
+                result = compute_bs_error(dg)
+                sampling_free_energy.append(list(result))
+            print('Convergence with number of samples:')
+            print(sampling_convg)
+            print(sampling_free_energy)
+            print('')
+
+        replica_results = []
+        if rep_convg is not None:
+            rep_free_energy = []
+            for rep in rep_convg:
+                for d, n in zip(self.rep_data[0:rep], self.rep_N_k[0:rep]):
+                    results = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
+                    replica_results.append(results)
+                dg = [x[0] for x in replica_results]
+                result = compute_bs_error(dg)
+                rep_free_energy.append(list(result))
+            print('Convergence with number of reps:')
+            print(rep_convg)
+            print(rep_free_energy)
+            print('')
 
         replica_results = []
         for d, n in zip(self.rep_data, self.rep_N_k):
@@ -147,6 +178,7 @@ class MBAR_Analysis():
         if distributions:
             print('dG for each replica:')
             print(dg)
+            print('')
 
         result = compute_bs_error(dg)
         return [result[0], np.sqrt(result[1])]
