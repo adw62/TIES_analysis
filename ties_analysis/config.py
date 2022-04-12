@@ -91,7 +91,7 @@ class Config():
                 self.engines.append(gro)
 
         if 'numpy' in self.engines_to_init:
-            numpy_args = read_config(openmm_cfg)
+            numpy_args = read_config(numpy_cfg)
             methods = general_args['methods']
             for method in methods:
                 numpy = Numpy(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
