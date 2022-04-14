@@ -137,32 +137,32 @@ class MBAR_Analysis():
         :return: list, containing average of bootstrapped dG and SEM
         '''
 
-        replica_results = []
         if sampling_convg is not None:
             sampling_free_energy = []
             for sampling in sampling_convg:
+                replica_results = []
                 for d, n in zip(self.rep_data, self.rep_N_k):
                     tmp_nk = [x if x < sampling else sampling for x in n]
-                    results = self.analysis(u_kln=d[:, :, 0:sampling], N_k=tmp_nk, mask_windows=mask_windows)
-                    replica_results.append(results)
+                    mbar_res = self.analysis(u_kln=d[:, :, 0:sampling], N_k=tmp_nk, mask_windows=mask_windows)
+                    replica_results.append(mbar_res)
                 dg = [x[0] for x in replica_results]
-                result = compute_bs_error(dg)
-                sampling_free_energy.append(list(result))
+                bs_res = compute_bs_error(dg)
+                sampling_free_energy.append([bs_res[0], np.sqrt(bs_res[1])])
             print('Convergence with number of samples:')
             print(sampling_convg)
             print(sampling_free_energy)
             print('')
 
-        replica_results = []
         if rep_convg is not None:
             rep_free_energy = []
             for rep in rep_convg:
+                replica_results = []
                 for d, n in zip(self.rep_data[0:rep], self.rep_N_k[0:rep]):
-                    results = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
-                    replica_results.append(results)
+                    mbar_res = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
+                    replica_results.append(mbar_res)
                 dg = [x[0] for x in replica_results]
-                result = compute_bs_error(dg)
-                rep_free_energy.append(list(result))
+                bs_res = compute_bs_error(dg)
+                rep_free_energy.append([bs_res[0], np.sqrt(bs_res[1])])
             print('Convergence with number of reps:')
             print(rep_convg)
             print(rep_free_energy)
@@ -170,8 +170,8 @@ class MBAR_Analysis():
 
         replica_results = []
         for d, n in zip(self.rep_data, self.rep_N_k):
-            results = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
-            replica_results.append(results)
+            mbar_res = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
+            replica_results.append(mbar_res)
 
         # x[1] here is MBAR error which is not used
         dg = [x[0] for x in replica_results]
@@ -180,8 +180,8 @@ class MBAR_Analysis():
             print(dg)
             print('')
 
-        result = compute_bs_error(dg)
-        return [result[0], np.sqrt(result[1])]
+        bs_res = compute_bs_error(dg)
+        return [bs_res[0], np.sqrt(bs_res[1])]
 
     def analysis(self, u_kln=None, N_k=None, mask_windows=None):
         '''
