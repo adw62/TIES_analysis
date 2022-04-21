@@ -35,7 +35,7 @@ class MBAR_Analysis():
     Class for MBAR analysis
     '''
 
-    def __init__(self, MBARs, temp, lambdas, analysis_dir):
+    def __init__(self, MBARs, temp, lambdas, analysis_dir, decorrelate=False):
         '''
 
         :param MBARs: numpy array for all results
@@ -59,9 +59,11 @@ class MBAR_Analysis():
             print('Attempting to make analysis folder {0}'.format(self.analysis_dir))
             Path(self.analysis_dir).mkdir(parents=True, exist_ok=True)
 
-        self.data, self.N_k, self.rep_data, self.rep_N_k = MBAR_Analysis.decorrelate_data(self)
 
-    def decorrelate_data(self):
+        self.data, self.N_k, self.rep_data, self.rep_N_k = MBAR_Analysis.decorrelate_data(self, decorrelate)
+
+
+    def decorrelate_data(self, decorrelate):
         '''
 
         decorrolate time series data.
@@ -106,19 +108,28 @@ class MBAR_Analysis():
         blank_Nk = np.zeros([self.nstates], np.int32)
 
         for i, u_kln in enumerate(self.data):
-            rep_deccor_data = copy.deepcopy(blank_decorr_data)
-            rep_Nk = copy.deepcopy(blank_Nk)
-            for k in range(self.nstates):
-                [nequil, g, Neff_max] = timeseries.detectEquilibration(u_kln[k, k, :])
-                sub_idx = timeseries.subsampleCorrelatedData(u_kln[k, k, :], g=g)
-                decorr_data[k, :, 0 + N_k[k]:N_k[k] + len(sub_idx)] = u_kln[k, :, sub_idx].T
-                rep_deccor_data[k, :, 0:len(sub_idx)] = u_kln[k, :, sub_idx].T
-                N_k[k] += len(sub_idx)
-                rep_Nk[k] = len(sub_idx)
+            if decorrelate:
+                rep_deccor_data = copy.deepcopy(blank_decorr_data)
+                rep_Nk = copy.deepcopy(blank_Nk)
+                for k in range(self.nstates):
+                        [nequil, g, Neff_max] = timeseries.detectEquilibration(u_kln[k, k, :])
+                        sub_idx = timeseries.subsampleCorrelatedData(u_kln[k, k, :], g=g)
+                        decorr_data[k, :, 0 + N_k[k]:N_k[k] + len(sub_idx)] = u_kln[k, :, sub_idx].T
+                        rep_deccor_data[k, :, 0:len(sub_idx)] = u_kln[k, :, sub_idx].T
+                        N_k[k] += len(sub_idx)
+                        rep_Nk[k] = len(sub_idx)
+            else:
+                rep_deccor_data = u_kln
+                rep_Nk = [self.shape[-1] for i in range(self.nstates)]
+                N_k = [x+self.shape[-1] for x in N_k]
+
             replicas_deccor.append(rep_deccor_data)
             replicas_Nk.append(rep_Nk)
 
-        print('Number of decorrelated samples extracted per state: {}'.format(N_k))
+        if decorrelate:
+            print('Number of decorrelated samples extracted per state: {}'.format(N_k))
+        else:
+            print('Decorrelatation was skipped using max iters per state: {}'.format(N_k))
 
         if self.analysis_dir is not None:
             np.save(decorr_data_sav, decorr_data)
@@ -140,6 +151,9 @@ class MBAR_Analysis():
         if sampling_convg is not None:
             sampling_free_energy = []
             for sampling in sampling_convg:
+                if sampling > self.shape[-1]:
+                    raise ValueError('Requested convergence info for too large iteration count: {}.'
+                                     ' Max number of iterations is {}'.format(sampling, self.shape[-1]))
                 replica_results = []
                 for d, n in zip(self.rep_data, self.rep_N_k):
                     tmp_nk = [x if x < sampling else sampling for x in n]

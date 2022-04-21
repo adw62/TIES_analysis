@@ -72,6 +72,9 @@ class TI_Analysis(object):
         if sampling_convg is not None:
             sampling_free_energy = []
             for sampling in sampling_convg:
+                if sampling > self.shape[-1]:
+                    raise ValueError('Requested convergence info for too large iteration count: {}.'
+                                     ' Max number of iterations is {}'.format(sampling, self.shape[-1]))
                 avg_over_iterations = np.average(data[:, :, :, 0:sampling], axis=3)
                 free_energy, variance = self.intergrate(avg_over_iterations.transpose(), lambdas)
                 result = [sum(free_energy.values()), np.sqrt(sum(variance.values()))]
