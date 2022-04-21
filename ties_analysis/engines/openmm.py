@@ -157,6 +157,7 @@ class OpenMM(object):
             raise ValueError('{} in methods but no results files found'.format(self.method))
 
         # Sort by order of windows
+        result_files.sort(key=get_replica)
         result_files.sort(key=get_window)
 
         #print('Processing files...')
@@ -188,3 +189,10 @@ def get_window(string):
     '''
     path = os.path.normpath(string)
     return float(path.split(os.sep)[-4].split('_')[1])
+
+def get_replica(string):
+    '''
+    Helper function to sort directory paths by specific index in file name
+    '''
+    path = os.path.normpath(string)
+    return float(path.split(os.sep)[-3].split('rep')[1])
