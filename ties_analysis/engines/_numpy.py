@@ -77,6 +77,8 @@ class Numpy(object):
             method_run = MBAR_Analysis(data, temp, self.lambs, analysis_dir)
         elif self.method == 'TI':
             method_run = TI_Analysis(data, self.lambs, analysis_dir)
+        else:
+            raise ValueError('Unknown method {}'.format(self.method))
 
         #provide option to combine all decorrelated timeseries into one long psuedo trajectory
         if self.method == 'FEP' and self.fep_combine_reps == True:

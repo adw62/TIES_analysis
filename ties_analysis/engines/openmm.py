@@ -114,6 +114,8 @@ class OpenMM(object):
             method_run = MBAR_Analysis(data, temp, self.openmm_lambs, analysis_dir)
         elif self.method == 'TI':
             method_run = TI_Analysis(data, self.openmm_lambs, analysis_dir)
+        else:
+            raise ValueError('Unknown method {}'.format(self.method))
 
         #provide option to combine all decorrelated timeseries into one long psuedo trajectory
         if self.method == 'FEP' and self.fep_combine_reps == True:

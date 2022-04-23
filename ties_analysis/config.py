@@ -69,7 +69,7 @@ class Config():
             namd_args['namd_version'] = namd_args['namd_version'][0]
             methods = general_args['methods']
             for method in methods:
-                namd = NAMD(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                namd = NAMD(method.upper(), self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
                             self.sampling_convg, **namd_args)
                 self.engines.append(namd)
 
@@ -77,7 +77,7 @@ class Config():
             openmm_args = read_config(openmm_cfg)
             methods = general_args['methods']
             for method in methods:
-                openmm = OpenMM(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                openmm = OpenMM(method.upper(), self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
                                 self.sampling_convg, **openmm_args)
                 self.engines.append(openmm)
 
@@ -86,7 +86,7 @@ class Config():
             methods = general_args['methods']
             gro_args['iterations'] = gro_args['iterations'][0]
             for method in methods:
-                gro = Gromacs(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                gro = Gromacs(method.upper(), self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
                               self.sampling_convg, **gro_args)
                 self.engines.append(gro)
 
@@ -94,7 +94,7 @@ class Config():
             numpy_args = read_config(numpy_cfg)
             methods = general_args['methods']
             for method in methods:
-                numpy = Numpy(method, self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
+                numpy = Numpy(method.upper(), self.analysis_dir, self.win_mask, self.distributions, self.rep_convg,
                               self.sampling_convg, **numpy_args)
                 self.engines.append(numpy)
 
