@@ -187,11 +187,13 @@ class MBAR_Analysis():
             mbar_res = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows, rep_id=i)
             replica_results.append(mbar_res)
 
-        # x[1] here is MBAR error which is not used
         dg = [x[0] for x in replica_results]
+
         if distributions:
             print('dG for each replica:')
             print(dg)
+            mbar_err = np.average([x[1] / np.sqrt(self.shape[0]) for x in replica_results])
+            print('With average MBAR error: {}'.format(mbar_err))
             print('')
 
         bs_res = compute_bs_error(dg)

@@ -93,6 +93,7 @@ class Numpy(object):
             result = method_run.replica_analysis(self.distributions, self.rep_convg, self.sampling_convg, self.win_mask)
 
         else:
+            #TI analysis
             result = method_run.analysis(self.distributions, self.rep_convg, self.sampling_convg, self.win_mask)
 
         return result
