@@ -183,8 +183,8 @@ class MBAR_Analysis():
             print('')
 
         replica_results = []
-        for d, n in zip(self.rep_data, self.rep_N_k):
-            mbar_res = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows)
+        for i, (d, n) in enumerate(zip(self.rep_data, self.rep_N_k)):
+            mbar_res = self.analysis(u_kln=d, N_k=n, mask_windows=mask_windows, rep_id=i)
             replica_results.append(mbar_res)
 
         # x[1] here is MBAR error which is not used
@@ -197,7 +197,7 @@ class MBAR_Analysis():
         bs_res = compute_bs_error(dg)
         return [bs_res[0], np.sqrt(bs_res[1])]
 
-    def analysis(self, u_kln=None, N_k=None, mask_windows=None):
+    def analysis(self, u_kln=None, N_k=None, mask_windows=None, rep_id=None):
         '''
         Process a matrix of potentials passes to this function as u_kln or process self.data which
          is matrix of all replicas
@@ -232,9 +232,10 @@ class MBAR_Analysis():
 
         # Save data to analysis dir
         if self.analysis_dir is not None:
-            scalar, eigen, matrix = mbar.computeOverlap()
-            np.save(os.path.join(self.analysis_dir, 'overlap{}.npy'.format(rep)), matrix)
             np.save(os.path.join(self.analysis_dir, 'DeltaF_ij.npy'), DeltaF_ij)
             np.save(os.path.join(self.analysis_dir, 'dDeltaF_ij.npy'), dDeltaF_ij)
+            if rep_id is not None:
+                scalar, eigen, matrix = mbar.computeOverlap()
+                np.save(os.path.join(self.analysis_dir, 'overlap{}.npy'.format(rep_id)), matrix)
 
         return result
