@@ -26,7 +26,7 @@ class Test_MBAR(unittest.TestCase):
                           ele_d=[1.0, 0.5, 0.0, 0.0, 0.0])
 
             #use TIES code
-            mbar = MBAR_Analysis(MBARs=np.array([u_kln]), temp=300, lambdas=lam, analysis_dir=None)
+            mbar = MBAR_Analysis(MBARs=np.array([u_kln]), temp=300, lambdas=lam, analysis_dir=None, decorrelate=True)
             avg, var = mbar.analysis()
 
             #check against minimal MBAR example
@@ -45,8 +45,8 @@ class Test_MBAR(unittest.TestCase):
             self.assertEqual(round(avg, 5), round(result[0], 5), 'MBAR analysis failed')
 
             #this is the check carried out in chodera code to test against analytic resutls.
-            ans = harm.analytical_free_energies()[-1]
-            z = (avg - ans) / result[1]
+            ans = harm.analytical_free_energies()[-1]*KBT
+            z = (result[0] - ans) / result[1]
             self.assertEqual(round(z/12, 0), 0, 'MBAR analysis failed')
 
 if __name__ == '__main__':

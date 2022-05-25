@@ -33,11 +33,9 @@ class Test_NAMD(unittest.TestCase):
         ele_d = []
 
         namd_ti = NAMD('TI', None, None, None, None, [0], vdw_a, vdw_d, ele_a, ele_d, 2.12)
-
         data_dir = './data/test_collate_namd/l6-l14/lig'
 
         ti_ans = np.load(os.path.join(data_dir, 'assembled_ti.npy'))
-
         ti_built = namd_ti.collate_data('./data', 'test_collate_namd', 'l6-l14', 'lig')
 
         self.assertIsNone(np.testing.assert_array_equal(ti_ans, ti_built, 'TI result built incorrectly for NAMD2'))
