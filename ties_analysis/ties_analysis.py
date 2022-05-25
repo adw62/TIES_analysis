@@ -4,21 +4,46 @@ import os
 
 from .config import Config
 import numpy as np
+from ties_analysis.engines.openmm import OpenMM
+from ties_analysis.engines.namd import NAMD
+from ties_analysis.engines._numpy import Numpy
 
 class Analysis():
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
+        # Process engines
+        self.engines = []
+        if 'namd2' in cfg.engines_to_init or 'namd3' in cfg.engines_to_init:
+            for method in cfg.methods:
+                namd = NAMD(method.upper(), cfg.output_dir, cfg.windows_mask, cfg.distributions, cfg.rep_convg,
+                            cfg.sampling_convg, cfg.vdw_a, cfg.vdw_d, cfg.ele_a, cfg.ele_d, cfg.namd_version)
+                self.engines.append(namd)
 
-        cfg = Config()
+        if 'openmm' in cfg.engines_to_init:
+            for method in cfg.methods:
+                openmm = OpenMM(method.upper(), cfg.output_dir, cfg.windows_mask, cfg.distributions, cfg.rep_convg,
+                                cfg.sampling_convg, cfg.vdw_a, cfg.vdw_d, cfg.ele_a, cfg.ele_d, fep_combine_reps=False)
+                self.engines.append(openmm)
+
+        if 'numpy' in cfg.engines_to_init:
+            for method in cfg.methods:
+                numpy = Numpy(method.upper(), cfg.output_dir, cfg.windows_mask, cfg.distributions, cfg.rep_convg,
+                              cfg.sampling_convg, cfg.vdw_a, cfg.vdw_d, cfg.ele_a, cfg.ele_d, fep_combine_reps=False)
+                self.engines.append(numpy)
+
+        if len(self.engines) == 0:
+            raise ValueError('No valid engine found. Select from namd2, namd3 or openmm')
+
+    def run(self):
         result = {}
-
-        for engine in cfg.engines:
+        for engine in self.engines:
             engine_id = engine.name+'_'+engine.method
             if engine_id not in result:
                 result[engine_id] = {}
             else:
                 raise ValueError('Repeated engine name {}'.format(engine_id))
 
-            for prot_name, prot_data in cfg.exp_data.items():
+            for prot_name, prot_data in self.cfg.exp_data.items():
                 if prot_name not in result[engine_id]:
                     result[engine_id][prot_name] = {}
                 else:
@@ -31,16 +56,17 @@ class Analysis():
                         raise ValueError('Repeated ligand name {}'.format(lig_name))
 
                     nice_print('{} {} {}'.format(engine_id, prot_name, lig_name))
-                    leg_results = {leg: 0.00 for leg in cfg.simulation_legs}
+                    leg_results = {leg: 0.00 for leg in self.cfg.simulation_legs}
 
-                    for leg in cfg.simulation_legs:
+                    for leg in self.cfg.simulation_legs:
                         nice_print(leg)
-                        leg_results[leg] = engine.run_analysis(cfg.data_root, cfg.temp, prot_name, lig_name, leg)
+                        leg_results[leg] = engine.run_analysis(self.cfg.data_root, self.cfg.temperature,
+                                                               prot_name, lig_name, leg)
 
-                    if len(cfg.simulation_legs) == 2:
+                    if len(self.cfg.simulation_legs) == 2:
                         print('Two thermodynamic legs found assuming this is a ddG calculation')
-                        leg1 = cfg.simulation_legs[0]
-                        leg2 = cfg.simulation_legs[1]
+                        leg1 = self.cfg.simulation_legs[0]
+                        leg2 = self.cfg.simulation_legs[1]
                         print('Computing {} - {}'.format(leg1, leg2))
 
                         ddg = leg_results[leg1][0] - leg_results[leg2][0]
@@ -48,17 +74,17 @@ class Analysis():
                         print('ddG = {}: SEM = {}'.format(ddg, ddg_err))
                         result[engine_id][prot_name][lig_name] = [ddg, ddg_err]
 
-                    elif len(cfg.simulation_legs) == 1:
-                        leg1 = cfg.simulation_legs[0]
+                    elif len(self.cfg.simulation_legs) == 1:
+                        leg1 = self.cfg.simulation_legs[0]
                         dg = leg_results[leg1][0]
                         dg_err = leg_results[leg1][1]
                         print('dG = {}: SEM = {}'.format(dg, dg_err))
                         result[engine_id][prot_name][lig_name] = [dg, dg_err]
 
                     else:
-                        for leg in cfg.simulation_legs:
+                        for leg in self.cfg.simulation_legs:
                             print('result = {} SEM = {} for leg {}'.format(*leg_results[leg], leg))
-                        fin_result = {leg: leg_results[leg] for leg in cfg.simulation_legs}
+                        fin_result = {leg: leg_results[leg] for leg in self.cfg.simulation_legs}
                         result[engine_id][prot_name][lig_name] = fin_result
 
         with open('./result.dat', 'w') as f:
@@ -76,9 +102,14 @@ def nice_print(string):
 
 
 def main():
-    nice_print('Analysis')
+    nice_print('TIES Analysis')
 
     if os.path.exists('./result.dat'):
         raise ValueError('Results file found in this directory cowardly refusing to proceed.')
     else:
-        ana = Analysis()
+        cfg = Config()
+        print('Running with options:')
+        cfg.get_options()
+        ana = Analysis(cfg)
+        ana.run()
+        nice_print('END')

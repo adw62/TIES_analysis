@@ -73,7 +73,7 @@ class NAMD(object):
         '''
 
         if self.method == 'FEP':
-            raise NotImplemented()
+            raise NotImplementedError('FEP not supported in NAMD analysis currently.')
 
         data = self.collate_data(data_root, prot, lig, leg)
         analysis_dir = os.path.join(self.output, self.name, self.method, prot, lig, leg)

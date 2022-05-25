@@ -90,7 +90,7 @@ class OpenMM(object):
         self.method = method
         self.openmm_lambs = Lambdas(vdw_a, vdw_d, ele_a, ele_d)
         self.output = output
-        self.fep_combine_reps = bool(int(fep_combine_reps[0]))
+        self.fep_combine_reps = bool(int(fep_combine_reps))
         self.win_mask = win_mask
         self.distributions = distributions
         self.rep_convg = rep_convg
