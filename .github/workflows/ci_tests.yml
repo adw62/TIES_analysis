@@ -2,7 +2,7 @@ name: CI
 on: [push]
 jobs:
   Run tests:
-    name: Test on ${{ matrix.cfg.os }}, Python ${{ matrix.cfg.python-version }}
+    name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -17,8 +17,8 @@ jobs:
       # More info on options: https://github.com/conda-incubator/setup-miniconda
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ["3.7"]
-          environment-file: devtools/conda-envs/test_env.yaml
+            python-version: ${{ matrix.python-version }}
+            environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults
           activate-environment: test
           auto-update-conda: true
