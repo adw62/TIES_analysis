@@ -14,7 +14,8 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
         with:
             python-version: ${{ matrix.python-version }}
             environment-file: devtools/conda-envs/test_env.yaml
