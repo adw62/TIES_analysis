@@ -10,5 +10,5 @@ setup(name='ties_analysis',
       packages=['ties_analysis', 'ties_analysis.engines', 'ties_analysis.methods'],
       python_requires='>=3.6.0',
       install_requires=['numpy', 'pymbar', 'scikit-learn',
-                         'six'],
+                         'six', 'nose'],
       entry_points = {'console_scripts':['TIES_ana = ties_analysis.ties_analysis:main']})
