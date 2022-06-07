@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: CI testing
 on: [push]
 jobs:
   Explore-GitHub-Actions:
@@ -13,5 +13,4 @@ jobs:
         run: |
           cd ties_analysis/tests/
           nosetests ./
-      - run: echo "This job's status is ${{ job.status }}."
 
