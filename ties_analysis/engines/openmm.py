@@ -163,10 +163,6 @@ class OpenMM(object):
         result_files.sort(key=get_replica)
         result_files.sort(key=get_window)
 
-        #print('Processing files...')
-        #for file in result_files:
-        #    print(file)
-
         # Use ordered dict to preserve windows order
         all_data = collections.OrderedDict()
         for file in result_files:
