@@ -1,16 +1,32 @@
-name: CI testing
+name: CI
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  Run tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Install dependencies
+
+      # More info on options: https://github.com/conda-incubator/setup-miniconda
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.7.3
+          environment-file: devtools/conda-envs/test_env.yaml
+          channels: conda-forge,defaults
+          activate-environment: test
+          auto-update-conda: true
+          auto-activate-base: false
+          show-channel-urls: true
+
+      - name: Install package
+        shell: bash -l {0}
         run: |
-          pip install ./
+          python -m pip install . --no-deps
+          conda list
+
       - name: Test code
         run: |
           cd ties_analysis/tests/
           nosetests ./
+
 
