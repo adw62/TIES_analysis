@@ -11,37 +11,11 @@ jobs:
         python-version: ["3.7"]
 
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v1
-
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v2.1.1
-        with:
-            python-version: ${{ matrix.python-version }}
-            environment-file: devtools/conda-envs/test_env.yaml
-          channels: conda-forge,defaults
-          activate-environment: test
-          auto-update-conda: true
-          auto-activate-base: false
-          show-channel-urls: true
-
-      - name: Install package
-        shell: bash -l {0}
+      - name: Additional info about the build
+        shell: bash
         run: |
-          python -m pip install . --no-deps
-          conda list
-
-      - name: Test code
-        shell: bash -l {0}
-        run: |
-          cd ties_analysis/tests/
-          nosetests ./
-
-      - name: CodeCov
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-${{ matrix.cfg.os }}-py${{ matrix.cfg.python-version }}
+          uname -a
+          df -h
+          ulimit -a
 
 
