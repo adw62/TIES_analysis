@@ -1,10 +1,9 @@
 package:
   name: ties_ana
   version: 0.0.0
-  license: 'LGPL'
 
 source:
-  path: ../..
+  path: ../../
 
 build:
   number: 0
@@ -22,3 +21,4 @@ requirements:
 
 about:
   home: https://github.com/adw62/TIES_analysis
+  license: 'LGPL'
