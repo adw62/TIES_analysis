@@ -4,7 +4,7 @@ package:
   license: 'LGPL'
 
 source:
-  path: ../
+  path: ../..
 
 build:
   number: 0
