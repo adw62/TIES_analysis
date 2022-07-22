@@ -33,14 +33,15 @@ class Test_MBAR(unittest.TestCase):
             nstates = 5
             N_k = np.zeros([nstates], np.int32)  # number of uncorrelated samples
             for k in range(nstates):
-                [_, g, __] = timeseries.detectEquilibration(u_kln[k, k, :])
-                indices = timeseries.subsampleCorrelatedData(u_kln[k, k, :], g=g)
+                [_, g, __] = timeseries.detect_equilibration(u_kln[k, k, :])
+                indices = timeseries.subsample_correlated_data(u_kln[k, k, :], g=g)
                 N_k[k] = len(indices)
                 u_kln[k, :, 0:N_k[k]] = u_kln[k, :, indices].T
             mbar = MBAR(u_kln, N_k)
-            [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences(return_theta=True)
-            result = ([DeltaF_ij[0, len(N_k) - 1]*KBT,
-                       dDeltaF_ij[0, len(N_k) - 1]*KBT])
+            mbar_results = mbar.compute_free_energy_differences(return_theta=True)
+
+            result = ([mbar_results['Delta_f'][0, len(N_k) - 1] * KBT,
+                       mbar_results['dDelta_f'][0, len(N_k) - 1] * KBT])  # units kilocalorie per mol
 
             self.assertEqual(round(avg, 5), round(result[0], 5), 'MBAR analysis failed')
 

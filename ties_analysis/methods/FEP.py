@@ -112,8 +112,8 @@ class MBAR_Analysis():
                 rep_deccor_data = copy.deepcopy(blank_decorr_data)
                 rep_Nk = copy.deepcopy(blank_Nk)
                 for k in range(self.nstates):
-                        [nequil, g, Neff_max] = timeseries.detectEquilibration(u_kln[k, k, :])
-                        sub_idx = timeseries.subsampleCorrelatedData(u_kln[k, k, :], g=g)
+                        [nequil, g, Neff_max] = timeseries.detect_equilibration(u_kln[k, k, :])
+                        sub_idx = timeseries.subsample_correlated_data(u_kln[k, k, :], g=g)
                         decorr_data[k, :, 0 + N_k[k]:N_k[k] + len(sub_idx)] = u_kln[k, :, sub_idx].T
                         rep_deccor_data[k, :, 0:len(sub_idx)] = u_kln[k, :, sub_idx].T
                         N_k[k] += len(sub_idx)
@@ -226,11 +226,11 @@ class MBAR_Analysis():
 
         # Compute free energy differences and statistical uncertainties
         mbar = MBAR(u_kln, N_k)
-        [DeltaF_ij, dDeltaF_ij, _] = mbar.getFreeEnergyDifferences(return_theta=True)
+        mbar_results = mbar.compute_free_energy_differences(return_theta=True)
 
         # print("Number of uncorrelated samples per state: {}".format(N_k))
-        result = ([DeltaF_ij[0, len(N_k) - 1]*self.KBT,
-                   dDeltaF_ij[0, len(N_k) - 1]*self.KBT]) #units kilocalorie per mol
+        result = ([mbar_results['Delta_f'][0, len(N_k) - 1]*self.KBT,
+                   mbar_results['dDelta_f'][0, len(N_k) - 1]*self.KBT]) #units kilocalorie per mol
 
         # Save data to analysis dir
         if self.analysis_dir is not None:
