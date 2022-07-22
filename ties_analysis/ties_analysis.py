@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import argparse
+import glob
 
 from .config import Config
 import numpy as np
@@ -67,6 +69,8 @@ class Analysis():
                         print('Two thermodynamic legs found assuming this is a ddG calculation')
                         leg1 = self.cfg.simulation_legs[0]
                         leg2 = self.cfg.simulation_legs[1]
+                        print('{} dG = {}: SEM = {}'.format(leg1, leg_results[leg1][0], leg_results[leg1][1]))
+                        print('{} dG = {}: SEM = {}'.format(leg2, leg_results[leg2][0], leg_results[leg2][1]))
                         print('Computing {} - {}'.format(leg1, leg2))
 
                         ddg = leg_results[leg1][0] - leg_results[leg2][0]
@@ -104,12 +108,48 @@ def nice_print(string):
 def main():
     nice_print('TIES Analysis')
 
+    parser = argparse.ArgumentParser(description='Program for the analysis of TIES_MD outputs.')
+    parser.add_argument("--run_type", type=str, help="What actions to perform [setup/run]", required=False)
+    args = parser.parse_args()
+
     if os.path.exists('./result.dat'):
         raise ValueError('Results file found in this directory cowardly refusing to proceed.')
-    else:
+
+    if args.run_type == 'run' or args.run_type is None:
         cfg = Config()
         print('Running with options:')
         cfg.get_options()
         ana = Analysis(cfg)
         ana.run()
         nice_print('END')
+    elif args.run_type == 'setup':
+        print('Generating dummy exp data...')
+        print('If legs have been set in analysis.cfg you can now run TIES_ana to get results.')
+        #looking for results files
+        populated_openmm_results = list(glob.iglob(os.path.join('*', '*', '*', 'LAMBDA*', 'rep*', 'results', '*.npy')))
+        populated_namd_results = list(glob.iglob(os.path.join('*', '*', '*', 'LAMBDA*', 'rep*', 'simulation', '*.alch')))
+        populated_openmm_results = list(set([x.split('LAMBDA')[0] for x in populated_openmm_results]))
+        populated_namd_results = list(set([x.split('LAMBDA')[0] for x in populated_namd_results]))
+        if len(populated_namd_results) > 0 and len(populated_openmm_results) > 0:
+            raise ValueError('Mixed OpenMM and NAMD results found please conduct analysis separately for each engine')
+        pop_results = populated_openmm_results+populated_namd_results
+        exp_dat = {}
+        legs = []
+        for x in pop_results:
+            _data = x.split(os.sep)
+            if _data[2] in legs:
+                continue
+            else:
+                legs.append(_data[0])
+                ligand = {_data[1]: [0.00, 0.00]}
+                exp_dat = {_data[0]: ligand}
+
+        with open('exp.dat', 'w') as f:
+            print(exp_dat, file=f)
+
+        nice_print('END')
+    else:
+        raise ValueError('Unknown value for arg run_type. Select from [setup/run]')
+
+
+
