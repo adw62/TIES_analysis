@@ -234,10 +234,10 @@ class MBAR_Analysis():
 
         # Save data to analysis dir
         if self.analysis_dir is not None:
-            np.save(os.path.join(self.analysis_dir, 'DeltaF_ij.npy'), DeltaF_ij)
-            np.save(os.path.join(self.analysis_dir, 'dDeltaF_ij.npy'), dDeltaF_ij)
+            np.save(os.path.join(self.analysis_dir, 'DeltaF_ij.npy'), mbar_results['Delta_f'])
+            np.save(os.path.join(self.analysis_dir, 'dDeltaF_ij.npy'), mbar_results['dDelta_f'])
             if rep_id is not None:
-                scalar, eigen, matrix = mbar.computeOverlap()
+                scalar, eigen, matrix = mbar.compute_overlap()
                 np.save(os.path.join(self.analysis_dir, 'overlap{}.npy'.format(rep_id)), matrix)
 
         return result
