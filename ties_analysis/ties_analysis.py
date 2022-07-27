@@ -112,9 +112,6 @@ def main():
     parser.add_argument("--run_type", type=str, help="What actions to perform [setup/run]", required=False)
     args = parser.parse_args()
 
-    if os.path.exists('./result.dat'):
-        raise ValueError('Results file found in this directory cowardly refusing to proceed.')
-
     if args.run_type == 'run' or args.run_type is None:
         cfg = Config()
         print('Running with options:')
@@ -134,15 +131,20 @@ def main():
             raise ValueError('Mixed OpenMM and NAMD results found please conduct analysis separately for each engine')
         pop_results = populated_openmm_results+populated_namd_results
         exp_dat = {}
-        legs = []
         for x in pop_results:
             _data = x.split(os.sep)
-            if _data[2] in legs:
-                continue
+            ligand = {_data[1]: [0.00, 0.00]}
+
+            if _data[0] in exp_dat:
+                if _data[1] in exp_dat[_data[0]]:
+                    #ignore if we have this included already
+                    continue
+                else:
+                    #if we have seen this system befor just add the new ligand
+                    exp_dat[_data[0]].update(ligand)
             else:
-                legs.append(_data[0])
-                ligand = {_data[1]: [0.00, 0.00]}
-                exp_dat = {_data[0]: ligand}
+                #if we have never see this in any form add all info
+                exp_dat.update({_data[0]: ligand})
 
         with open('exp.dat', 'w') as f:
             print(exp_dat, file=f)
