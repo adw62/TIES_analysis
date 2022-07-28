@@ -20,7 +20,18 @@ __license__ = "LGPL"
 
 import copy
 import numpy as np
+import os
+from pathlib import Path
 from sklearn.utils import resample
+
+skip_graphs = False
+try:
+    from matplotlib import pyplot as plt
+    from matplotlib import colors
+
+except ModuleNotFoundError:
+    print('matplotlib not found skipping graphs')
+    skip_graphs = True
 
 class TI_Analysis(object):
     '''
@@ -44,8 +55,13 @@ class TI_Analysis(object):
 
         #directory where any TI specific output could be saved, not curretly used
         self.analysis_dir = analysis_dir
+        if analysis_dir is not None:
+            print('Attempting to make analysis folder {0}'.format(self.analysis_dir))
+            Path(self.analysis_dir).mkdir(parents=True, exist_ok=True)
 
         print('Data shape is {} repeats, {} states, {} lambda dimensions, {} iterations\n'.format(*self.shape))
+        if not skip_graphs:
+            self.plot_du_by_dl()
 
     def analysis(self, distributions=False, rep_convg=None, sampling_convg=None, mask_windows=None):
         '''
@@ -110,11 +126,11 @@ class TI_Analysis(object):
         #compute dg for all reps and sampling this is the result that is returned
         free_energy, variance = self.intergrate(avg_over_iterations.transpose(), lambdas)
 
-        print('Free energy breakdown:')
-        print(free_energy)
-        print('Variance breakdown:')
-        print(variance)
-        print('')
+        #print('Free energy breakdown:')
+        #print(free_energy)
+        #print('Variance breakdown:')
+        #print(variance)
+        #print('')
 
         return [sum(free_energy.values()), np.sqrt(sum(variance.values()))]
 
@@ -148,6 +164,52 @@ class TI_Analysis(object):
 
         return free_energy, var
 
+    def plot_du_by_dl(self):
+        '''
+        Function to plot dU/dlam vs state with include calculations for ci
+        '''
+        print('Plotting du/dlam graph...')
+        avg_over_iterations = np.average(self.data, axis=3).transpose()
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7.25 * 2, 4.5 * 2))
+
+        keys = self.lambdas.schedule[0].keys()
+        for state_data, lam_key in zip(avg_over_iterations, keys):
+            lambda_array = getattr(self.lambdas, lam_key)
+            # if lambdas not all zero or 1 then plot line
+            if not all(v == 0 for v in lambda_array) and not all(v == 1 for v in lambda_array):
+                # iteration over state
+                avg_var_by_state = np.array([compute_bs_error(data) for data in state_data])
+                avg_by_state = np.array([x[0] for x in avg_var_by_state])
+                var_by_state = np.array([x[1] for x in avg_var_by_state])
+                std_by_state = np.sqrt(var_by_state)
+
+                dlam = get_lam_diff(lambda_array)
+                x_vals = []
+                y_vals = []
+                err_vals = []
+                for x, (y, std, dl) in enumerate(zip(avg_by_state, std_by_state, dlam)):
+                    if dl != 0:
+                        x_vals.append(x + 1)
+                        y_vals.append(y)
+                        err_vals.append(std)
+                x_vals = np.array(x_vals)
+                y_vals = np.array(y_vals)
+                err_vals = np.array(err_vals)
+
+                # avg_by_state = np.array([x if y != 0.0 else 0.0 for x, y in zip(avg_by_state, dlam)])
+                # std_by_state = np.array([x if y != 0.0 else 0.0 for x, y in zip(std_by_state, dlam)])
+                ax.set_xticks(range(1, self.shape[1]+1))
+                ax.plot(x_vals, y_vals, label=lam_key, zorder=20)
+                ax.fill_between(x_vals, y_vals + err_vals, y_vals - err_vals, alpha=0.15, zorder=1)
+                ax.set_xlabel('State')
+                ax.set_ylabel('$\delta U/ \delta \lambda$ [kcal/mol]')
+
+        ax.set_xlim(1, self.shape[1])
+        ax.legend(loc='upper left', bbox_to_anchor=(1.0, 1.025), labelspacing=1.2)
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.analysis_dir, 'dUdlam'))
+        plt.close('all')
+
 def get_lam_diff(lambda_array):
     '''
 
@@ -172,7 +234,6 @@ def compute_bs_error(replicas):
         boot = [resample(replicas, replace=True, n_samples=len(replicas)) for x in range(5000)]
         avg_per_boot_sample = np.average(boot, axis=1)
     else:
-        print('Warning asked for variance of 1 replica')
         return replicas[0], 0.0
 
     return np.average(avg_per_boot_sample), np.var(avg_per_boot_sample, ddof=1)

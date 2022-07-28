@@ -69,12 +69,14 @@ class Analysis():
                         print('Two thermodynamic legs found assuming this is a ddG calculation')
                         leg1 = self.cfg.simulation_legs[0]
                         leg2 = self.cfg.simulation_legs[1]
+                        print('')
                         print('{} dG = {}: SEM = {}'.format(leg1, leg_results[leg1][0], leg_results[leg1][1]))
                         print('{} dG = {}: SEM = {}'.format(leg2, leg_results[leg2][0], leg_results[leg2][1]))
                         print('Computing {} - {}'.format(leg1, leg2))
 
                         ddg = leg_results[leg1][0] - leg_results[leg2][0]
                         ddg_err = np.sqrt(np.square(leg_results[leg1][1]) + np.square(leg_results[leg2][1]))
+                        print('')
                         print('ddG = {}: SEM = {}'.format(ddg, ddg_err))
                         result[engine_id][prot_name][lig_name] = [ddg, ddg_err]
 
@@ -82,6 +84,7 @@ class Analysis():
                         leg1 = self.cfg.simulation_legs[0]
                         dg = leg_results[leg1][0]
                         dg_err = leg_results[leg1][1]
+                        print('')
                         print('dG = {}: SEM = {}'.format(dg, dg_err))
                         result[engine_id][prot_name][lig_name] = [dg, dg_err]
 

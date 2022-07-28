@@ -27,6 +27,19 @@ from pymbar import MBAR, timeseries
 
 from ties_analysis.methods.TI import compute_bs_error
 
+skip_graphs = False
+try:
+    import seaborn as sns
+    from matplotlib import pyplot as plt
+    from matplotlib import colors
+
+    sns.set_style('whitegrid')
+    sns.set_context('paper', font_scale=2.5)
+
+except ModuleNotFoundError:
+    print('matplotlib/seaborn not found skipping graphs')
+    skip_graphs = True
+
 #GLOBAL CONSTANTS
 kb = 0.0019872066135803576 #unit kcal/(mole*kelvin)
 
@@ -59,9 +72,7 @@ class MBAR_Analysis():
             print('Attempting to make analysis folder {0}'.format(self.analysis_dir))
             Path(self.analysis_dir).mkdir(parents=True, exist_ok=True)
 
-
         self.data, self.N_k, self.rep_data, self.rep_N_k = MBAR_Analysis.decorrelate_data(self, decorrelate)
-
 
     def decorrelate_data(self, decorrelate):
         '''
@@ -131,12 +142,12 @@ class MBAR_Analysis():
         else:
             print('Decorrelatation was skipped using max iters per state: {}'.format(N_k))
 
-        if self.analysis_dir is not None:
-            np.save(decorr_data_sav, decorr_data)
-            np.save(index_sav, N_k)
+        #if self.analysis_dir is not None:
+        #    np.save(decorr_data_sav, decorr_data)
+        #    np.save(index_sav, N_k)
 
-            np.save(rep_decorr_data_sav, replicas_deccor)
-            np.save(rep_index_sav, replicas_Nk)
+        #    np.save(rep_decorr_data_sav, replicas_deccor)
+        #    np.save(rep_index_sav, replicas_Nk)
 
         return decorr_data, N_k, replicas_deccor, replicas_Nk
 
@@ -234,10 +245,42 @@ class MBAR_Analysis():
 
         # Save data to analysis dir
         if self.analysis_dir is not None:
-            np.save(os.path.join(self.analysis_dir, 'DeltaF_ij.npy'), mbar_results['Delta_f'])
-            np.save(os.path.join(self.analysis_dir, 'dDeltaF_ij.npy'), mbar_results['dDelta_f'])
+            np.save(os.path.join(self.analysis_dir, 'dG_by_state.npy'), mbar_results['Delta_f'])
+            #np.save(os.path.join(self.analysis_dir, 'sigma_dG_by_state.npy'), mbar_results['dDelta_f'])
             if rep_id is not None:
-                scalar, eigen, matrix = mbar.compute_overlap()
-                np.save(os.path.join(self.analysis_dir, 'overlap{}.npy'.format(rep_id)), matrix)
+                over_lap_res = mbar.compute_overlap()
+                np.save(os.path.join(self.analysis_dir, 'overlap{}.npy'.format(rep_id)), over_lap_res['matrix'])
+                if not skip_graphs:
+                    self.plot_overlap_mat(over_lap_res['matrix'], rep_id)
 
         return result
+
+    def plot_overlap_mat(self, mat, rep_id):
+        '''
+        Make a plot of the overlap matrix for this simulation
+        :param mat: numpy array, overlap matrix to make a plot for
+        :param rep_id: int, what replica are we looking at
+        '''
+        print('Plotting overlap matrix for replica {}...'.format(rep_id))
+        plt.rcParams['figure.figsize'] = self.shape[1], self.shape[1]
+        plt.rcParams["font.size"] = 22
+        plt.rcParams["font.serif"] = "Computer Modern Roman"
+        plt.rcParams["mathtext.fontset"] = "cm"
+
+        cmap = colors.ListedColormap(['#FBE8EB', '#88CCEE', '#78C592', '#117733'])
+        bounds = [0.0, 0.025, 0.1, 0.3, 0.8]
+        norm = colors.BoundaryNorm(bounds, cmap.N, clip=False)
+        cbar_kws = dict(ticks=[.025, .1, .3, 0.8])
+        ax = sns.heatmap(mat, annot=True, fmt='.2f', linewidths=.3, annot_kws={"size": 14},
+                         square=True, robust=True, cmap=cmap, norm=norm, vmin=0, vmax=1, cbar_kws=cbar_kws)
+        ax.set_xlabel(r'$\lambda$ index')
+        ax.set_ylabel(r'$\lambda$ index')
+        ax.xaxis.tick_top()
+        ax.xaxis.set_label_position('top')
+        ax.set_xlabel(r'$\lambda$ index')
+        ax.set_ylabel(r'$\lambda$ index')
+
+        # Plot
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.analysis_dir, 'overlap_for_rep{}.png'.format(rep_id)))
+        plt.close('all')
